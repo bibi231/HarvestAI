@@ -47,70 +47,82 @@ export default function History() {
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div>
-        <h1 className="text-4xl font-black text-primary tracking-tight mb-2">Job History</h1>
-        <p className="text-secondary text-base">Access your legacy harvests and audit past extractions.</p>
+    <div className="space-y-12 animate-slide-up">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-10">
+        <div>
+          <h1 className="text-5xl font-black text-primary tracking-tighter mb-3 italic uppercase">Execution History</h1>
+          <p className="text-secondary text-sm font-medium uppercase tracking-widest opacity-60">Audit and retrieve past extractions.</p>
+        </div>
       </div>
 
-      <div className="bento-card overflow-hidden">
-        <h3 className="section-label mb-6">Execution Log</h3>
+      <div className="bento-card overflow-hidden bg-white/[0.01]">
+        <div className="flex items-center justify-between mb-10">
+           <span className="section-label mb-0">System Log Archive</span>
+           <span className="text-[10px] font-black text-muted uppercase tracking-widest font-mono">TOTAL_RECORDS_{jobs.length}</span>
+        </div>
+
         {loading ? (
-          <div className="flex justify-center py-20"><div className="spinner" /></div>
+          <div className="flex flex-col items-center justify-center py-40">
+             <div className="spinner mb-6" />
+             <div className="text-xs font-black text-accent uppercase tracking-widest animate-pulse italic">Reading Silo Layers...</div>
+          </div>
         ) : jobs.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center opacity-40">
-            <div className="text-4xl mb-4">📜</div>
-            <div className="text-sm font-medium">Your historical archive is empty.</div>
-            <div className="text-xs mt-1">Completed harvests will appear here automatically.</div>
+          <div className="flex flex-col items-center justify-center py-40 text-center opacity-20">
+            <div className="text-6xl mb-8 select-none">📜</div>
+            <div className="text-sm font-black tracking-widest uppercase italic text-primary">Archive is empty</div>
+            <div className="text-[9px] mt-3 text-muted uppercase tracking-[0.4em] font-medium leading-none">AWAITING COMPLETED PROTOCOLS</div>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+            <table className="w-full">
               <thead>
-                <tr className="border-b border-default text-[11px] font-bold text-muted uppercase">
-                  <th className="pb-4 pr-4">Identifer</th>
-                  <th className="pb-4 pr-4">Mode</th>
-                  <th className="pb-4 pr-4">Timestamp</th>
-                  <th className="pb-4 pr-4">Status</th>
-                  <th className="pb-4 text-right">Actions</th>
+                <tr className="text-left text-[10px] font-black text-muted uppercase tracking-[0.3em] italic">
+                  <th className="pb-6 pr-6 pl-0">Identifer</th>
+                  <th className="pb-6 pr-6">Engine Mode</th>
+                  <th className="pb-6 pr-6">Timestamp</th>
+                  <th className="pb-6 pr-6">Status</th>
+                  <th className="pb-6 text-right">Manifest</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-subtle">
+              <tbody className="divide-y divide-white/5">
                 {jobs.map((job) => (
-                  <tr key={job.id} className="group hover:bg-white/[0.02] transition-colors">
-                    <td className="py-4 pr-4">
-                      <div className="font-bold text-primary flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-accent/20" />
+                  <tr key={job.id} className="group hover:bg-white/[0.02]">
+                    <td className="py-6 pr-6 pl-0">
+                      <div className="font-extrabold text-primary text-xl tracking-tighter italic group-hover:text-accent transition-colors flex items-center gap-4">
+                        <span className="w-2 h-2 rounded-full bg-accent/20 border border-accent/40" />
                         {job.id.slice(0, 8)}
                       </div>
-                      <div className="text-[10px] text-muted truncate max-w-[150px]">
+                      <div className="text-[10px] text-muted font-bold mt-2 uppercase tracking-tighter truncate max-w-[200px] font-mono group-hover:text-secondary transition-colors">
                         {job.metadata?.businessType || job.metadata?.urls?.[0]}
                       </div>
                     </td>
-                    <td className="py-4 pr-4">
-                       <span className="text-[10px] font-black uppercase text-secondary bg-elevated px-2 py-0.5 rounded border border-default">
-                        {job.type}
+                    <td className="py-6 pr-6">
+                       <span className="text-[10px] font-black uppercase text-secondary bg-elevated px-3 py-1.5 rounded-lg border border-white/5 transition-all group-hover:bg-accent group-hover:text-black">
+                        {job.type.toUpperCase()}
                        </span>
                     </td>
-                    <td className="py-4 pr-4 text-muted text-xs">
-                      {new Date(job.createdAt).toLocaleString()}
+                    <td className="py-6 pr-6 text-muted text-xs font-mono font-bold italic opacity-60 group-hover:opacity-100 uppercase tracking-tighter">
+                      {new Date(job.createdAt).toLocaleString().split(',').join(' _ ')}
                     </td>
-                    <td className="py-4 pr-4">
-                       <div className={`text-[10px] font-bold uppercase ${
-                          job.status === 'completed' ? 'text-success' : 
-                          job.status === 'failed' ? 'text-error' : 'text-accent'
+                    <td className="py-6 pr-6">
+                       <div className={`text-[10px] font-black uppercase tracking-widest italic border border-white/5 px-2 py-0.5 rounded flex items-center gap-2 ${
+                          job.status === 'completed' ? 'text-success bg-success/10 border-success/20' : 
+                          job.status === 'failed' ? 'text-error bg-error/10 border-error/20' : 'text-accent bg-accent/10 border-accent/20'
                        }`}>
+                        <span className={`w-1 h-1 rounded-full ${job.status === 'completed' ? 'bg-success' : job.status === 'failed' ? 'bg-error' : 'bg-accent animate-pulse'}`} />
                         {job.status}
                        </div>
                     </td>
-                    <td className="py-4 text-right">
-                      {job.status === 'completed' && (
+                    <td className="py-6 text-right">
+                      {job.status === 'completed' ? (
                         <button 
                           onClick={() => handleDownload(job.id)}
-                          className="text-accent hover:underline text-xs font-bold"
+                          className="btn-secondary px-4 py-2 text-[9px] font-black tracking-widest uppercase transition-all hover:bg-white/10"
                         >
-                          Download ↓
+                          DOWNLOAD ↓
                         </button>
+                      ) : (
+                        <span className="text-[9px] font-black text-muted uppercase tracking-widest opacity-30">NOT_RETRIEVABLE</span>
                       )}
                     </td>
                   </tr>

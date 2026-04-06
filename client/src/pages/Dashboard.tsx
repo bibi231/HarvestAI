@@ -56,23 +56,23 @@ export default function Dashboard() {
 
   return (
     <AppShell>
-      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="space-y-12 animate-slide-up">
         
-        {/* ── Subheader ── */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        {/* ── Dashboard Header ── */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-10">
           <div>
-            <h1 className="text-4xl font-black text-primary tracking-tight mb-2">Harvest Center</h1>
-            <p className="text-secondary text-base">Select your extraction mode and define targets.</p>
+            <h1 className="text-5xl font-black text-primary tracking-tighter mb-3 italic">Harvest Center</h1>
+            <p className="text-secondary text-sm font-medium uppercase tracking-widest opacity-60">Engine Management & Data Orchestration</p>
           </div>
-          <div className="flex gap-1 bg-elevated p-1 rounded-xl border border-default shadow-sm">
+          <div className="flex gap-1.5 bg-black/40 p-1.5 rounded-2xl border border-default shadow-2xl backdrop-blur-3xl lg:translate-y-2">
             {(['leads', 'extract'] as Mode[]).map((m) => (
               <button
                 key={m}
                 onClick={() => setMode(m)}
-                className={`px-6 py-2 rounded-lg text-[11px] font-black uppercase transition-all duration-300 ${
+                className={`px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${
                   mode === m 
-                    ? 'bg-accent text-black shadow-lg shadow-accent/20' 
-                    : 'text-secondary hover:text-primary hover:bg-neutral-800'
+                    ? 'bg-accent text-black shadow-xl shadow-accent/25' 
+                    : 'text-secondary hover:text-primary hover:bg-white/5'
                 }`}
               >
                 {m === 'leads' ? 'Lead Finder' : 'Data Extractor'}
@@ -81,54 +81,54 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* ── Left: Controls ── */}
-          <div className="lg:col-span-4 space-y-6">
-            <div className="bento-card bg-neutral-950/40 backdrop-blur-md">
-              <h3 className="section-label mb-6">Execution Parameters</h3>
-              <form onSubmit={handleStart} className="space-y-5">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+          {/* ── Parameters Column ── */}
+          <div className="lg:col-span-4 space-y-8">
+            <div className="bento-card border-white/5 bg-white/[0.01]">
+              <span className="section-label">Payload Configuration</span>
+              <form onSubmit={handleStart} className="space-y-6">
                 {mode === 'leads' ? (
                   <>
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-muted uppercase tracking-wider">Business Category</label>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-muted uppercase tracking-[0.2em] italic">Business Category</label>
                       <input 
-                        className="w-full bg-base/50 border border-default rounded-lg px-4 py-3 text-sm focus:border-accent outline-none transition-all placeholder:opacity-30"
                         placeholder="e.g. Architectural Firms"
                         value={businessType}
                         onChange={e => setBusinessType(e.target.value)}
+                        className="w-full"
                         required
                       />
                     </div>
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-muted uppercase tracking-wider">Target Location</label>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-muted uppercase tracking-[0.2em] italic">Target Location</label>
                       <input 
-                        className="w-full bg-base/50 border border-default rounded-lg px-4 py-3 text-sm focus:border-accent outline-none transition-all placeholder:opacity-30"
                         placeholder="e.g. Lagos, Abuja"
                         value={location}
                         onChange={e => setLocation(e.target.value)}
+                        className="w-full"
                         required
                       />
                     </div>
                   </>
                 ) : (
                   <>
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-muted uppercase tracking-wider">Target URL</label>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-muted uppercase tracking-[0.2em] italic">Source URL</label>
                       <input 
-                        className="w-full bg-base/50 border border-default rounded-lg px-4 py-3 text-sm focus:border-accent outline-none transition-all placeholder:opacity-30"
                         placeholder="https://clutch.co/directories/lagos"
                         value={url}
                         onChange={e => setUrl(e.target.value)}
+                        className="w-full"
                         required
                       />
                     </div>
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-muted uppercase tracking-wider">Extraction Payload Description</label>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-muted uppercase tracking-[0.2em] italic">Intelligence Description</label>
                       <textarea 
-                        className="w-full bg-base/50 border border-default rounded-lg px-4 py-3 text-sm focus:border-accent outline-none transition-all placeholder:opacity-30 min-h-[120px] resize-none"
                         placeholder="Identify every business name, contact info, and rating..."
                         value={description}
                         onChange={e => setDescription(e.target.value)}
+                        className="w-full min-h-[160px] resize-none"
                         required
                       />
                     </div>
@@ -137,8 +137,8 @@ export default function Dashboard() {
                 
                 <button 
                   disabled={loading || !!jobId && status === 'running' || credits <= 0}
-                  className={`btn btn-full py-4 mt-4 transition-all duration-500 ${
-                    credits <= 0 ? 'opacity-50 cursor-not-allowed grayscale' : 'btn-primary'
+                  className={`btn btn-primary w-full py-5 text-base tracking-widest ${
+                    credits <= 0 ? 'grayscale opacity-40 cursor-not-allowed' : ''
                   }`}
                 >
                   {loading ? 'Initializing Engine...' : jobId && status === 'running' ? 'Scanning Sources...' : credits <= 0 ? 'Insufficient Credits' : 'Start Harvesting →'}
@@ -147,86 +147,95 @@ export default function Dashboard() {
             </div>
             
              <div className="bento-card border-accent/10 bg-accent/[0.02]">
-                <div className="flex items-center gap-3">
-                    <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-                    <span className="text-[10px] font-black text-accent uppercase tracking-widest">System Health: Nominal</span>
+                <div className="flex items-center gap-4">
+                    <span className="w-2 h-2 rounded-full bg-accent animate-pulse shadow-[0_0_10px_var(--accent)]" />
+                    <span className="text-[10px] font-black text-accent uppercase tracking-[0.3em] italic">Engine Status: Nominal</span>
                 </div>
              </div>
           </div>
 
-          {/* ── Right: Output ── */}
-          <div className="lg:col-span-8 flex flex-col gap-8">
-            {/* Live Monitoring Panel */}
+          {/* ── Intelligence Feed Column ── */}
+          <div className="lg:col-span-8 flex flex-col gap-10">
+            {/* Real-time Monitoring */}
             {jobId && (
-              <div className="bento-card border-accent/20 bg-accent/[0.03] animate-in zoom-in-95 duration-500">
-                <div className="flex items-center justify-between mb-8">
-                   <div className="flex items-center gap-4">
-                      <div className="px-3 py-1 bg-elevated border border-default rounded-md flex items-center gap-2">
-                         <span className="text-[10px] font-black text-muted uppercase tracking-tighter">JOB_ID_</span>
-                         <span className="text-xs font-mono font-bold text-primary">{jobId.slice(0, 8)}</span>
+              <div className="bento-card border-accent/20 bg-accent/[0.04] animate-scale-in">
+                <div className="flex items-center justify-between mb-10">
+                   <div className="flex items-center gap-6">
+                      <div className="px-4 py-1.5 bg-black/40 border border-default rounded-xl flex items-center gap-3">
+                         <span className="text-[10px] font-black text-muted uppercase tracking-tighter italic">CONSOLE_LOG_</span>
+                         <span className="text-xs font-mono font-bold text-accent">{jobId.slice(0, 8)}</span>
                       </div>
-                      <div className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${
-                        status === 'completed' ? 'bg-success/10 text-success' : 
-                        status === 'failed' ? 'bg-error/10 text-error' : 'bg-accent/10 text-accent'
+                      <div className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${
+                        status === 'completed' ? 'bg-success/20 text-success border border-success/30' : 
+                        status === 'failed' ? 'bg-error/20 text-error border border-error/30' : 'bg-accent/20 text-accent border border-accent/30'
                       }`}>
                         {status}
                       </div>
                    </div>
                    {status === 'completed' && (
-                     <button onClick={handleExport} className="btn btn-secondary px-4 py-1.5 text-[10px] uppercase font-black tracking-widest">Download CSV ↓</button>
+                     <button onClick={handleExport} className="btn-secondary px-5 py-2 rounded-xl text-[10px] uppercase font-black tracking-[0.2em] group">
+                       <span className="opacity-60 group-hover:opacity-100 transition-opacity">Manifest Download</span> ↓
+                     </button>
                    )}
                 </div>
                 
-                <div className="space-y-4">
-                  <div className="flex justify-between items-baseline">
-                    <span className="text-[10px] font-black text-muted uppercase tracking-[0.2em]">Extraction Progressive</span>
-                    <span className="text-xl font-black text-primary font-mono">{progress}%</span>
+                <div className="space-y-6">
+                  <div className="flex justify-between items-end">
+                    <span className="text-[10px] font-black text-muted uppercase tracking-[0.3em] italic">Extraction Integrity</span>
+                    <span className="text-3xl font-black text-primary font-mono tracking-tighter">{progress}%</span>
                   </div>
-                  <div className="h-2 w-full bg-neutral-900 rounded-full overflow-hidden border border-default">
-                    <div className="h-full bg-accent transition-all duration-1000 ease-out shadow-[0_0_15px_rgba(245,166,35,0.4)]" style={{ width: `${progress}%` }} />
+                  <div className="h-3 w-full bg-black/50 rounded-full overflow-hidden border border-default p-0.5">
+                    <div className="h-full bg-accent rounded-full transition-all duration-1000 ease-out shadow-[0_0_20px_var(--accent)]" style={{ width: `${progress}%` }} />
                   </div>
                 </div>
               </div>
             )}
 
             {/* Results Table */}
-            <div className="bento-card flex-grow overflow-hidden bg-neutral-950/20">
-              <h3 className="section-label mb-8">Harvested Intelligence</h3>
+            <div className="bento-card flex-grow overflow-hidden bg-white/[0.01]">
+              <div className="flex items-center justify-between mb-10">
+                 <span className="section-label mb-0">Harvested Intelligence</span>
+                 {results.length > 0 && <span className="text-[10px] font-black text-muted uppercase tracking-widest font-mono">COUNT_{results.length}</span>}
+              </div>
+
               {!jobId ? (
-                <div className="flex flex-col items-center justify-center py-32 text-center opacity-30 select-none">
-                  <div className="text-5xl mb-6">🌾</div>
-                  <div className="text-sm font-bold tracking-tight text-primary">Silo is empty.</div>
-                  <div className="text-xs mt-2 text-muted uppercase tracking-widest">Connect to a data source to begin.</div>
+                <div className="flex flex-col items-center justify-center py-40 text-center opacity-20 group cursor-default">
+                  <div className="text-6xl mb-8 group-hover:scale-110 transition-transform duration-700 select-none">🌾</div>
+                  <div className="text-sm font-black tracking-widest uppercase italic text-primary">Silo is currently empty</div>
+                  <div className="text-[9px] mt-3 text-muted uppercase tracking-[0.4em] font-medium leading-none">AWAITING INITIALIZATION PROTOCOL</div>
                 </div>
               ) : results.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-32 text-center">
-                  <div className="spinner mb-6" />
-                  <div className="text-sm font-bold tracking-tight text-primary">Navigating Digital Terrain...</div>
-                  <div className="text-[10px] text-accent mt-2 uppercase tracking-widest font-black animate-pulse">Running {mode} protocol...</div>
+                <div className="flex flex-col items-center justify-center py-40 text-center">
+                  <div className="spinner mb-8" />
+                  <div className="text-sm font-black tracking-widest uppercase italic text-accent animate-pulse">Navigating Digital Layers...</div>
+                  <div className="text-[10px] text-muted mt-3 uppercase tracking-widest font-black leading-none">PROTOCOL_{mode.toUpperCase()}</div>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-sm border-spacing-0">
+                  <table className="w-full">
                     <thead>
-                      <tr className="border-b border-default text-[10px] font-black text-muted uppercase tracking-widest">
-                        <th className="pb-4 pr-4">Identified Entity</th>
-                        <th className="pb-4 pr-4">Contact Vectors</th>
-                        <th className="pb-4 text-right">Confidence</th>
+                      <tr className="text-left text-[10px] font-black text-muted uppercase tracking-[0.3em] italic">
+                        <th className="pb-6 pr-6 pl-0">Target Entity</th>
+                        <th className="pb-6 pr-6">Extraction Details</th>
+                        <th className="pb-6 text-right">Confidence</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-subtle mt-4 block_table_rows">
+                    <tbody className="divide-y divide-white/5">
                       {results.map((row: any, i: number) => (
-                        <tr key={i} className="group hover:bg-white/[0.03] transition-all duration-300">
-                          <td className="py-5 pr-4 align-top">
-                            <div className="font-extrabold text-primary text-base group-hover:text-accent transition-colors">{row.name || row.title || 'Unknown Object'}</div>
-                            <div className="text-[10px] font-bold text-muted mt-1 uppercase tracking-tighter truncate max-w-[250px]">{row.website || row.url || '-'}</div>
+                        <tr key={i} className="group hover:bg-accent/[0.02]">
+                          <td className="py-6 pr-6 pl-0">
+                            <div className="font-black text-primary text-xl tracking-tighter italic transition-colors group-hover:text-accent leading-none">{row.name || row.title || 'UNKNOWN'}</div>
+                            <div className="text-[10px] font-bold text-muted mt-2 uppercase tracking-tighter truncate max-w-[280px] font-mono group-hover:text-secondary transition-colors">{row.website || row.url || '---'}</div>
                           </td>
-                          <td className="py-5 pr-4 align-top">
-                            <div className="text-sm font-medium text-secondary">{row.email || 'Email missing'}</div>
-                            <div className="text-xs text-muted mt-1">{row.phone || row.address || 'Metadata missing'}</div>
+                          <td className="py-6 pr-6">
+                            <div className="text-sm font-black text-secondary leading-none uppercase tracking-tighter">{row.email || 'NO_E_VECTOR'}</div>
+                            <div className="text-[11px] text-muted mt-2 font-medium truncate max-w-[240px] italic">{row.phone || row.address || 'NO_META_DATA'}</div>
                           </td>
-                          <td className="py-5 text-right align-top">
-                            <span className="text-[10px] font-black text-accent bg-accent/10 px-2 py-0.5 rounded uppercase tracking-widest">AI Scored</span>
+                          <td className="py-6 text-right">
+                            <div className="inline-flex items-center gap-2 text-[10px] font-black text-accent bg-accent/10 border border-accent/20 px-3 py-1 rounded-lg uppercase tracking-widest italic shadow-sm">
+                                <span className="w-1 h-1 rounded-full bg-accent animate-ping" />
+                                Scored
+                            </div>
                           </td>
                         </tr>
                       ))}

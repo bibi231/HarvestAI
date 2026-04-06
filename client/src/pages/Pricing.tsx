@@ -5,9 +5,9 @@ import { api } from '../lib/api';
 import AuthModal from '../components/AuthModal';
 
 const PLANS = [
-  { id: 'starter', name: 'Starter Batch', credits: 100, price: 5000, currency: 'NGN', desc: 'Perfect for one-off research projects.' },
-  { id: 'pro', name: 'Pro Harvester', credits: 300, price: 12000, currency: 'NGN', desc: 'The industry standard for data teams.', popular: true },
-  { id: 'power', name: 'Infinite Pack', credits: 500, price: 18000, currency: 'NGN', desc: 'Maximum throughput at the lowest cost.' },
+  { id: 'starter', name: 'Starter Batch', credits: 100, price: 5000, currency: 'NGN', desc: 'Single-harvest deployment.' },
+  { id: 'pro', name: 'Pro Harvester', credits: 300, price: 12000, currency: 'NGN', desc: 'The industrial industry standard.', popular: true },
+  { id: 'power', name: 'Infinite Pack', credits: 500, price: 18000, currency: 'NGN', desc: 'Max throughput at baseline cost.' },
 ];
 
 declare global {
@@ -72,59 +72,59 @@ export default function Pricing() {
   };
 
   return (
-    <div className="min-h-screen bg-base pt-32 pb-32 px-6">
+    <div className="min-h-screen bg-[#020202] pt-40 pb-40 px-10 relative">
       <div className="mesh-bg" />
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-20 max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="hero-badge mx-auto mb-6">Scale your infrastructure</div>
-          <h1 className="text-5xl font-black text-primary tracking-tight mb-4">Investment Tiers</h1>
-          <p className="text-secondary text-base lg:text-lg">
-            Harvest data without limits. All plans include full access to both Lead Finder and Data Extractor engines.
+        <div className="text-center mb-24 max-w-2xl mx-auto animate-fade-in">
+          <div className="hero-badge mx-auto mb-8">Data Acquisition Tiers</div>
+          <h1 className="text-6xl font-black text-primary tracking-tighter mb-6 italic">Investment Tiers</h1>
+          <p className="text-secondary text-sm font-medium tracking-widest uppercase opacity-60">
+            Select your harvest capacity and unlock industrial-grade intelligence.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
           {PLANS.map((plan, i) => (
             <div 
               key={plan.id} 
-              className={`bento-card relative flex flex-col p-10 animate-in fade-in slide-in-from-bottom-8 duration-700
-                ${plan.popular ? 'border-accent ring-1 ring-accent/30 shadow-2xl shadow-accent/20 bg-accent/[0.03]' : 'bg-neutral-950/20'}
+              className={`bento-card relative flex flex-col p-12 animate-slide-up bg-white/[0.01] hover:bg-white/[0.03]
+                ${plan.popular ? 'border-accent shadow-glow bg-accent/[0.02]' : 'border-default'}
               `}
-              style={{ animationDelay: `${i * 100}ms` }}
+              style={{ animationDelay: `${i * 150}ms` }}
             >
               {plan.popular && (
-                <div className="absolute top-0 right-10 -translate-y-1/2 bg-accent text-black text-[10px] font-black px-3 py-1 rounded uppercase tracking-tighter">Most Efficient</div>
+                <div className="absolute top-0 right-14 -translate-y-1/2 bg-accent text-black text-[9px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest shadow-xl shadow-accent/20">RECOMMENDED_ACQUISITION</div>
               )}
               
-              <div className="mb-10">
-                <h3 className="text-2xl font-black text-primary mb-2 italic">_{plan.name}</h3>
-                <p className="text-xs text-muted font-medium uppercase tracking-widest">{plan.desc}</p>
+              <div className="mb-14">
+                <span className="section-label mb-3">PLAN_IDENT_{plan.id.toUpperCase()}</span>
+                <h3 className="text-3xl font-black text-primary italic leading-none">{plan.name}</h3>
+                <p className="text-[10px] text-muted font-bold uppercase tracking-widest mt-4 leading-relaxed">{plan.desc}</p>
               </div>
               
-              <div className="flex items-baseline gap-2 mb-10 pb-8 border-b border-default">
-                <span className="text-5xl font-black text-primary tracking-tighter">{plan.price.toLocaleString()}</span>
-                <span className="text-xs font-bold text-muted uppercase tracking-widest">{plan.currency}</span>
+              <div className="flex items-baseline gap-3 mb-14 pb-10 border-b border-white/5 relative">
+                <span className="text-6xl font-black text-primary tracking-tighter italic">{plan.price.toLocaleString()}</span>
+                <span className="text-sm font-black text-muted uppercase tracking-[0.2em] font-mono">{plan.currency}</span>
               </div>
 
-              <div className="space-y-4 mb-auto">
-                <div className="flex items-center gap-3">
-                    <span className="text-accent text-lg">✓</span>
-                    <span className="text-sm font-bold text-primary">{plan.credits} AI Harvester Credits</span>
-                </div>
-                <div className="flex items-center gap-3">
-                    <span className="text-accent text-lg">✓</span>
-                    <span className="text-sm font-bold text-primary">Priority GPU Queues</span>
-                </div>
-                <div className="flex items-center gap-3">
-                    <span className="text-accent text-lg">✓</span>
-                    <span className="text-sm font-bold text-primary">Industrial-rate Scrapers</span>
-                </div>
+              <div className="space-y-6 mb-16">
+                {[
+                  `${plan.credits} AI Harvester Credits`,
+                  'Priority GPU Processing',
+                  'Advanced Scraper Clusters',
+                  'Instant CSV Manifest'
+                ].map((feat, idx) => (
+                  <div key={idx} className="flex items-center gap-4 group/feat">
+                    <div className="w-5 h-5 rounded-md bg-accent/10 border border-accent/20 flex items-center justify-center text-[10px] text-accent font-black transition-colors group-hover/feat:bg-accent group-hover/feat:text-black">✓</div>
+                    <span className="text-xs font-black text-primary uppercase tracking-tighter italic opacity-80 group-hover/feat:opacity-100 transition-opacity">{feat}</span>
+                  </div>
+                ))}
               </div>
               
               <button 
                 onClick={() => handlePurchase(plan)}
                 disabled={loading === plan.id}
-                className={`btn btn-full py-4 mt-12 transition-all active:scale-95 ${plan.popular ? 'btn-primary' : 'btn-secondary'}`}
+                className={`btn w-full py-5 text-base tracking-widest transition-all active:scale-95 ${plan.popular ? 'btn-primary' : 'btn-secondary'}`}
               >
                 {loading === plan.id ? 'Connecting Gateway...' : 'Initialize Acquisition →'}
               </button>
@@ -132,14 +132,18 @@ export default function Pricing() {
           ))}
         </div>
 
-        <div className="mt-20 p-10 bento-card flex flex-col lg:flex-row items-center justify-between gap-10 max-w-5xl mx-auto text-left border-default bg-elevated/40 backdrop-blur-3xl">
+        <div className="mt-32 p-14 bento-card flex flex-col lg:flex-row items-center justify-between gap-12 max-w-5xl mx-auto border-white/5 bg-white/[0.01] backdrop-blur-3xl animate-fade-in transition-all hover:bg-white/[0.02]">
           <div className="flex-1">
-            <h4 className="text-2xl font-black text-primary mb-2 italic">Enterprise Scraper Clusters</h4>
-            <p className="text-sm text-secondary font-medium leading-relaxed max-w-xl">
-              HarvestAI can scale to 10M+ extractions per month. If you need bespoke data pipelines, dedicated server clusters, or custom crawler logic for deep enterprise sources, our engineering team is ready to scale with you.
+             <div className="flex items-center gap-4 mb-4">
+                 <div className="w-3 h-3 rounded-full bg-accent animate-pulse" />
+                 <span className="text-[10px] font-black text-accent uppercase tracking-[0.4em] italic">Enterprise Grade</span>
+             </div>
+            <h4 className="text-3xl font-black text-primary mb-5 italic">Dedicated Scraper Infrastructure</h4>
+            <p className="text-secondary text-base leading-relaxed max-w-xl opacity-80">
+              HarvestAI delivers ultra-high throughput to clusters requiring 10M+ extractions. If you need bespoke logic and dedicated agents, our engineering team is standing by.
             </p>
           </div>
-          <button className="btn btn-secondary px-8 py-3 whitespace-nowrap">Contact Enterprise Engineering →</button>
+          <button className="btn btn-secondary px-10 py-4 whitespace-nowrap text-xs font-black tracking-widest">Connect Engineering →</button>
         </div>
       </div>
       
