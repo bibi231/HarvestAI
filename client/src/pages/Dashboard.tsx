@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../hooks/useAuth';
 import { useCredits } from '../hooks/useCredits';
 import { useJobStream } from '../hooks/useJobStream';
 import { api } from '../lib/api';
+import AppShell from '../components/AppShell';
 
 type Mode = 'leads' | 'extract';
 
 export default function Dashboard() {
-  const { user } = useAuth();
   const { credits, refreshCredits } = useCredits();
   const [mode, setMode] = useState<Mode>('leads');
   const [loading, setLoading] = useState(false);
@@ -56,25 +55,24 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-base pb-20">
-      <div className="mesh-bg" />
-      
-      {/* ── Subheader ── */}
-      <div className="pt-24 px-6 max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+    <AppShell>
+      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        
+        {/* ── Subheader ── */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
-            <h1 className="text-4xl font-black text-primary tracking-tight mb-2">My Workspace</h1>
-            <p className="text-secondary">Engineered for precision data harvesting.</p>
+            <h1 className="text-4xl font-black text-primary tracking-tight mb-2">Harvest Center</h1>
+            <p className="text-secondary text-base">Select your extraction mode and define targets.</p>
           </div>
-          <div className="flex gap-2 bg-elevated p-1 rounded-xl border border-default">
+          <div className="flex gap-1 bg-elevated p-1 rounded-xl border border-default shadow-sm">
             {(['leads', 'extract'] as Mode[]).map((m) => (
               <button
                 key={m}
                 onClick={() => setMode(m)}
-                className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${
+                className={`px-6 py-2 rounded-lg text-[11px] font-black uppercase transition-all duration-300 ${
                   mode === m 
                     ? 'bg-accent text-black shadow-lg shadow-accent/20' 
-                    : 'text-secondary hover:text-primary'
+                    : 'text-secondary hover:text-primary hover:bg-neutral-800'
                 }`}
               >
                 {m === 'leads' ? 'Lead Finder' : 'Data Extractor'}
@@ -86,26 +84,26 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* ── Left: Controls ── */}
           <div className="lg:col-span-4 space-y-6">
-            <div className="bento-card">
+            <div className="bento-card bg-neutral-950/40 backdrop-blur-md">
               <h3 className="section-label mb-6">Execution Parameters</h3>
-              <form onSubmit={handleStart} className="space-y-4">
+              <form onSubmit={handleStart} className="space-y-5">
                 {mode === 'leads' ? (
                   <>
                     <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold text-muted uppercase">Business Category</label>
+                      <label className="text-[10px] font-bold text-muted uppercase tracking-wider">Business Category</label>
                       <input 
-                        className="w-full bg-base border border-default rounded-md px-4 py-2.5 text-sm focus:border-accent outline-none"
-                        placeholder="e.g. Real Estate, Law Firms"
+                        className="w-full bg-base/50 border border-default rounded-lg px-4 py-3 text-sm focus:border-accent outline-none transition-all placeholder:opacity-30"
+                        placeholder="e.g. Architectural Firms"
                         value={businessType}
                         onChange={e => setBusinessType(e.target.value)}
                         required
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold text-muted uppercase">Target Location</label>
+                      <label className="text-[10px] font-bold text-muted uppercase tracking-wider">Target Location</label>
                       <input 
-                        className="w-full bg-base border border-default rounded-md px-4 py-2.5 text-sm focus:border-accent outline-none"
-                        placeholder="e.g. Lagos, Nigeria"
+                        className="w-full bg-base/50 border border-default rounded-lg px-4 py-3 text-sm focus:border-accent outline-none transition-all placeholder:opacity-30"
+                        placeholder="e.g. Lagos, Abuja"
                         value={location}
                         onChange={e => setLocation(e.target.value)}
                         required
@@ -115,20 +113,20 @@ export default function Dashboard() {
                 ) : (
                   <>
                     <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold text-muted uppercase">Source URL</label>
+                      <label className="text-[10px] font-bold text-muted uppercase tracking-wider">Target URL</label>
                       <input 
-                        className="w-full bg-base border border-default rounded-md px-4 py-2.5 text-sm focus:border-accent outline-none"
-                        placeholder="https://example.com/products"
+                        className="w-full bg-base/50 border border-default rounded-lg px-4 py-3 text-sm focus:border-accent outline-none transition-all placeholder:opacity-30"
+                        placeholder="https://clutch.co/directories/lagos"
                         value={url}
                         onChange={e => setUrl(e.target.value)}
                         required
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold text-muted uppercase">Extraction Instructions</label>
+                      <label className="text-[10px] font-bold text-muted uppercase tracking-wider">Extraction Payload Description</label>
                       <textarea 
-                        className="w-full bg-base border border-default rounded-md px-4 py-2.5 text-sm focus:border-accent outline-none min-h-[100px]"
-                        placeholder="List every product name, price, and SKU..."
+                        className="w-full bg-base/50 border border-default rounded-lg px-4 py-3 text-sm focus:border-accent outline-none transition-all placeholder:opacity-30 min-h-[120px] resize-none"
+                        placeholder="Identify every business name, contact info, and rating..."
                         value={description}
                         onChange={e => setDescription(e.target.value)}
                         required
@@ -138,96 +136,97 @@ export default function Dashboard() {
                 )}
                 
                 <button 
-                  disabled={loading || !!jobId && status === 'running'}
-                  className="btn btn-primary btn-full mt-4"
+                  disabled={loading || !!jobId && status === 'running' || credits <= 0}
+                  className={`btn btn-full py-4 mt-4 transition-all duration-500 ${
+                    credits <= 0 ? 'opacity-50 cursor-not-allowed grayscale' : 'btn-primary'
+                  }`}
                 >
-                  {loading ? 'Initializing...' : jobId && status === 'running' ? 'Processing...' : 'Start Harvesting →'}
+                  {loading ? 'Initializing Engine...' : jobId && status === 'running' ? 'Scanning Sources...' : credits <= 0 ? 'Insufficient Credits' : 'Start Harvesting →'}
                 </button>
               </form>
             </div>
-
-            <div className="bento-card">
-              <h3 className="section-label mb-4">Account Pulse</h3>
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-2xl font-black text-accent">{credits}</div>
-                  <div className="text-[10px] font-bold text-muted uppercase">Credits Available</div>
+            
+             <div className="bento-card border-accent/10 bg-accent/[0.02]">
+                <div className="flex items-center gap-3">
+                    <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+                    <span className="text-[10px] font-black text-accent uppercase tracking-widest">System Health: Nominal</span>
                 </div>
-                <div className={`w-3 h-3 rounded-full ${credits > 0 ? 'bg-success animate-pulse' : 'bg-error'}`} />
-              </div>
-            </div>
+             </div>
           </div>
 
           {/* ── Right: Output ── */}
           <div className="lg:col-span-8 flex flex-col gap-8">
-            {/* Status Panel */}
+            {/* Live Monitoring Panel */}
             {jobId && (
-              <div className="bento-card border-accent/20">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="text-sm font-bold text-primary">Job: <span className="text-accent">{jobId.slice(0, 8)}</span></div>
-                    <div className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${
-                      status === 'completed' ? 'bg-success/10 text-success' : 
-                      status === 'failed' ? 'bg-error/10 text-error' : 'bg-accent/10 text-accent'
-                    }`}>
-                      {status}
-                    </div>
-                  </div>
-                  {status === 'completed' && (
-                    <button onClick={handleExport} className="text-xs font-bold text-accent hover:underline">Download CSV ↓</button>
-                  )}
+              <div className="bento-card border-accent/20 bg-accent/[0.03] animate-in zoom-in-95 duration-500">
+                <div className="flex items-center justify-between mb-8">
+                   <div className="flex items-center gap-4">
+                      <div className="px-3 py-1 bg-elevated border border-default rounded-md flex items-center gap-2">
+                         <span className="text-[10px] font-black text-muted uppercase tracking-tighter">JOB_ID_</span>
+                         <span className="text-xs font-mono font-bold text-primary">{jobId.slice(0, 8)}</span>
+                      </div>
+                      <div className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${
+                        status === 'completed' ? 'bg-success/10 text-success' : 
+                        status === 'failed' ? 'bg-error/10 text-error' : 'bg-accent/10 text-accent'
+                      }`}>
+                        {status}
+                      </div>
+                   </div>
+                   {status === 'completed' && (
+                     <button onClick={handleExport} className="btn btn-secondary px-4 py-1.5 text-[10px] uppercase font-black tracking-widest">Download CSV ↓</button>
+                   )}
                 </div>
                 
-                <div className="space-y-2">
-                  <div className="flex justify-between text-[11px] font-bold text-muted uppercase">
-                    <span>Progressive Extraction</span>
-                    <span>{progress}%</span>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-baseline">
+                    <span className="text-[10px] font-black text-muted uppercase tracking-[0.2em]">Extraction Progressive</span>
+                    <span className="text-xl font-black text-primary font-mono">{progress}%</span>
                   </div>
-                  <div className="progress-bar">
-                    <div className="progress-bar-fill" style={{ width: `${progress}%` }} />
+                  <div className="h-2 w-full bg-neutral-900 rounded-full overflow-hidden border border-default">
+                    <div className="h-full bg-accent transition-all duration-1000 ease-out shadow-[0_0_15px_rgba(245,166,35,0.4)]" style={{ width: `${progress}%` }} />
                   </div>
                 </div>
               </div>
             )}
 
             {/* Results Table */}
-            <div className="bento-card flex-grow overflow-hidden">
-              <h3 className="section-label mb-6">Harvested Data</h3>
+            <div className="bento-card flex-grow overflow-hidden bg-neutral-950/20">
+              <h3 className="section-label mb-8">Harvested Intelligence</h3>
               {!jobId ? (
-                <div className="flex flex-col items-center justify-center py-20 text-center opacity-40">
-                  <div className="text-4xl mb-4">🌾</div>
-                  <div className="text-sm font-medium">Waiting for your first harvest.</div>
-                  <div className="text-xs mt-1">Submit the parameters to start extraction.</div>
+                <div className="flex flex-col items-center justify-center py-32 text-center opacity-30 select-none">
+                  <div className="text-5xl mb-6">🌾</div>
+                  <div className="text-sm font-bold tracking-tight text-primary">Silo is empty.</div>
+                  <div className="text-xs mt-2 text-muted uppercase tracking-widest">Connect to a data source to begin.</div>
                 </div>
               ) : results.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20 text-center">
-                  <div className="spinner mb-4" />
-                  <div className="text-sm font-medium">Scanning source pages...</div>
-                  <div className="text-xs text-muted mt-1 italic">"{mode === 'leads' ? `Searching ${location} for ${businessType}` : `Parsing ${url}`}"</div>
+                <div className="flex flex-col items-center justify-center py-32 text-center">
+                  <div className="spinner mb-6" />
+                  <div className="text-sm font-bold tracking-tight text-primary">Navigating Digital Terrain...</div>
+                  <div className="text-[10px] text-accent mt-2 uppercase tracking-widest font-black animate-pulse">Running {mode} protocol...</div>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-sm">
+                  <table className="w-full text-left text-sm border-spacing-0">
                     <thead>
-                      <tr className="border-b border-default text-[11px] font-bold text-muted uppercase">
-                        <th className="pb-4 pr-4">Identity</th>
-                        <th className="pb-4 pr-4">Contact Detail</th>
-                        <th className="pb-4 text-right">Reputation</th>
+                      <tr className="border-b border-default text-[10px] font-black text-muted uppercase tracking-widest">
+                        <th className="pb-4 pr-4">Identified Entity</th>
+                        <th className="pb-4 pr-4">Contact Vectors</th>
+                        <th className="pb-4 text-right">Confidence</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-subtle">
+                    <tbody className="divide-y divide-subtle mt-4 block_table_rows">
                       {results.map((row: any, i: number) => (
-                        <tr key={i} className="hover:bg-white/[0.02] transition-colors">
-                          <td className="py-4 pr-4">
-                            <div className="font-bold text-primary">{row.name || row.title || 'Unknown Entity'}</div>
-                            <div className="text-[10px] text-muted overflow-hidden text-ellipsis whitespace-nowrap max-w-[200px]">{row.website || row.url || '-'}</div>
+                        <tr key={i} className="group hover:bg-white/[0.03] transition-all duration-300">
+                          <td className="py-5 pr-4 align-top">
+                            <div className="font-extrabold text-primary text-base group-hover:text-accent transition-colors">{row.name || row.title || 'Unknown Object'}</div>
+                            <div className="text-[10px] font-bold text-muted mt-1 uppercase tracking-tighter truncate max-w-[250px]">{row.website || row.url || '-'}</div>
                           </td>
-                          <td className="py-4 pr-4 text-secondary">
-                            <div>{row.email || 'no-email@found.com'}</div>
-                            <div className="text-xs">{row.phone || '-'}</div>
+                          <td className="py-5 pr-4 align-top">
+                            <div className="text-sm font-medium text-secondary">{row.email || 'Email missing'}</div>
+                            <div className="text-xs text-muted mt-1">{row.phone || row.address || 'Metadata missing'}</div>
                           </td>
-                          <td className="py-4 text-right">
-                            <div className="text-xs font-bold text-accent">{row.score || 'Auto'} Scored</div>
+                          <td className="py-5 text-right align-top">
+                            <span className="text-[10px] font-black text-accent bg-accent/10 px-2 py-0.5 rounded uppercase tracking-widest">AI Scored</span>
                           </td>
                         </tr>
                       ))}
@@ -239,6 +238,6 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
-    </div>
+    </AppShell>
   );
 }

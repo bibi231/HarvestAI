@@ -5,6 +5,7 @@ import { useAuth } from './hooks/useAuth';
 // Pages
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
+import History from './pages/History';
 import Pricing from './pages/Pricing';
 
 // Components
@@ -23,12 +24,20 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/pricing" element={<Pricing />} />
 
-        {/* Protected Dashboard */}
+        {/* Protected Dashboard Area */}
         <Route 
           path="/app" 
           element={
             <AuthGuard>
               <Dashboard />
+            </AuthGuard>
+          } 
+        />
+        <Route 
+          path="/app/history" 
+          element={
+            <AuthGuard>
+              <History />
             </AuthGuard>
           } 
         />
