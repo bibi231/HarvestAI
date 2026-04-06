@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { width: 320px; font-family: sans-serif; background: #080808; color: #f0ede8; margin: 0; padding: 16px; border: 1px solid #161616; }
+    h1 { font-size: 18px; margin: 0 0 16px; color: #f5a623; display: flex; align-items: center; gap: 8px; }
+    .btn { background: #f5a623; color: #1a1100; border: none; padding: 10px; width: 100%; border-radius: 6px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn:hover { background: #f7b84e; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .info { font-size: 12px; color: #8a8680; margin-top: 12px; line-height: 1.4; }
+    .input-group { margin-bottom: 12px; }
+    label { display: block; font-size: 11px; text-transform: uppercase; color: #4a4844; margin-bottom: 4px; font-weight: 600; }
+    textarea { width: 100%; background: #161616; border: 1px solid #333; color: white; border-radius: 4px; padding: 8px; font-family: inherit; resize: none; box-sizing: border-box; }
+    #status { margin-top: 12px; font-size: 12px; font-weight: 500; text-align: center; }
+    .success { color: #22c55e; }
+    .error { color: #ef4444; }
+  </style>
+</head>
+<body>
+  <h1>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+    </svg>
+    HarvestAI
+  </h1>
+  <div class="input-group">
+    <label>What to extract?</label>
+    <textarea id="instruction" rows="3" placeholder="e.g. Extract all product names and prices"></textarea>
+  </div>
+  <button id="extractBtn" class="btn">Extract from page</button>
+  <div id="status"></div>
+  <div class="info">This will send the current page URL to your HarvestAI dashboard for processing.</div>
+  <script src="popup.js"></script>
+</body>
+</html>
