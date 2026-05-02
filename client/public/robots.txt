@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /app
+Disallow: /app/history
+Disallow: /app/settings
+
+Sitemap: https://harvestai.com.ng/sitemap.xml

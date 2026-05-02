@@ -2,16 +2,147 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HarvestAI — AI Web Scraper & Lead Finder</title>
-  <meta name="description" content="Extract leads and structured data from any website using AI. Built for Nigerian businesses and global teams." />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#07080f" />
+
+  <!-- Primary SEO -->
+  <title>HarvestAI — AI Web Scraping &amp; Lead Generation Tool</title>
+  <meta name="description" content="HarvestAI uses AI to scrape, extract and structure web data for lead generation, market research and business intelligence. Fast, accurate, affordable. Built in Nigeria." />
+  <meta name="keywords" content="AI web scraper, lead generation tool, web data extraction, AI scraping, Nigeria lead gen, web intelligence, business data tool" />
+  <meta name="robots" content="index, follow" />
+  <meta name="author" content="TrueWeb Solutions" />
+  <link rel="canonical" href="https://harvestai.com.ng" />
+
+  <!-- OpenGraph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://harvestai.com.ng" />
+  <meta property="og:title" content="HarvestAI — Smart AI Web Data Extraction" />
+  <meta property="og:description" content="Extract leads, data and insights from any website with AI. Fast, accurate and affordable for Nigerian businesses and global teams." />
+  <meta property="og:image" content="https://harvestai.com.ng/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="HarvestAI — AI Web Scraping Tool" />
+  <meta property="og:site_name" content="HarvestAI" />
+  <meta property="og:locale" content="en_NG" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="HarvestAI — AI Web Scraping &amp; Lead Generation" />
+  <meta name="twitter:description" content="Extract leads and structured data from any website using AI. Built for Nigeria and the world." />
+  <meta name="twitter:image" content="https://harvestai.com.ng/og-image.png" />
+  <meta name="twitter:image:alt" content="HarvestAI app screenshot" />
+
+  <!-- PWA / Manifest -->
+  <link rel="manifest" href="/manifest.json" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/favicon.svg" />
+
+  <!-- Font preloads -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=Cabinet+Grotesk:wght@700;800;900&display=swap" rel="stylesheet" />
-  <script src="https://js.paystack.co/v1/inline.js"></script>
+  <link rel="preconnect" href="https://api.harvestai.com.ng" />
+
+  <!-- JSON-LD: SoftwareApplication -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "HarvestAI",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "Web",
+    "url": "https://harvestai.com.ng",
+    "description": "AI-powered web scraping and lead generation tool. Extract structured data, leads and business intelligence from any website in seconds.",
+    "featureList": [
+      "AI-powered web data extraction",
+      "Lead generation from any website",
+      "Structured data output (CSV, JSON)",
+      "Market research automation",
+      "Competitor intelligence",
+      "Scheduled harvests"
+    ],
+    "offers": {
+      "@type": "AggregateOffer",
+      "lowPrice": "0",
+      "highPrice": "10",
+      "priceCurrency": "USD",
+      "description": "Free tier available. Paid plans from $1."
+    },
+    "author": { "@type": "Organization", "name": "TrueWeb Solutions", "url": "https://harvestai.com.ng" },
+    "screenshot": "https://harvestai.com.ng/og-image.png"
+  }
+  </script>
+
+  <!-- JSON-LD: FAQ -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What is HarvestAI?",
+        "acceptedAnswer": { "@type": "Answer", "text": "HarvestAI is an AI-powered web scraping and lead generation tool. You give it a URL or search query and it extracts structured data — names, emails, phone numbers, company info — automatically." }
+      },
+      {
+        "@type": "Question",
+        "name": "Is HarvestAI free?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes, HarvestAI has a free tier. Paid credit packs are available for higher volume usage starting from NGN 1,500." }
+      },
+      {
+        "@type": "Question",
+        "name": "What kind of data can HarvestAI extract?",
+        "acceptedAnswer": { "@type": "Answer", "text": "HarvestAI can extract business leads, contact information, product listings, pricing data, job postings, and any structured content from websites." }
+      },
+      {
+        "@type": "Question",
+        "name": "Is HarvestAI built for Nigerian businesses?",
+        "acceptedAnswer": { "@type": "Answer", "text": "HarvestAI was built in Nigeria and supports Nigerian payment methods (Paystack and Flutterwave), but it works for teams globally." }
+      }
+    ]
+  }
+  </script>
+
+  <!-- Payment gateways deferred -->
+  <script defer src="https://js.paystack.co/v1/inline.js"></script>
+  <script defer src="https://checkout.flutterwave.com/v3.js"></script>
+
+  <style>
+    html, body { background:#07080f; color:#e2e8f0; margin:0; padding:0; min-height:100%; overflow-x:hidden;
+                 font-family:'DM Sans', system-ui, -apple-system, sans-serif; }
+    #root { min-height:100vh; }
+    .hai-boot {
+      position:fixed; inset:0;
+      display:flex; align-items:center; justify-content:center; flex-direction:column; gap:18px;
+      background: radial-gradient(circle at 50% 30%, rgba(245,158,11,.08) 0%, transparent 60%), #07080f;
+      z-index:9999;
+    }
+    .hai-boot-mark {
+      width:60px; height:60px; border-radius:16px;
+      background:linear-gradient(135deg,#f59e0b,#d97706);
+      box-shadow:0 12px 36px rgba(245,158,11,.35);
+      display:grid; place-items:center; color:#fff;
+      font-family:'Cabinet Grotesk', sans-serif; font-weight:900; font-size:28px;
+      animation: hai-boot-float 2.5s ease-in-out infinite;
+    }
+    .hai-boot-text { font-family:'Cabinet Grotesk', sans-serif; font-weight:900; font-size:22px; }
+    .hai-boot-sub  { font-size:12px; letter-spacing:.16em; text-transform:uppercase; color:#8b8b73;
+                     display:flex; align-items:center; gap:8px; }
+    .hai-boot-spin { width:14px; height:14px; border-radius:50%;
+                     border:2px solid rgba(245,158,11,.2); border-top-color:#f59e0b;
+                     animation: hai-boot-spin .9s linear infinite; }
+    @keyframes hai-boot-spin  { to { transform:rotate(360deg); } }
+    @keyframes hai-boot-float { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-6px); } }
+  </style>
 </head>
 <body>
-  <div id="root"></div>
+  <div id="root">
+    <div class="hai-boot" aria-busy="true">
+      <div class="hai-boot-mark">H</div>
+      <div class="hai-boot-text">HarvestAI</div>
+      <div class="hai-boot-sub"><span class="hai-boot-spin"></span> Initialising harvest engine</div>
+    </div>
+  </div>
   <script type="module" src="/src/main.tsx"></script>
 </body>
 </html>
