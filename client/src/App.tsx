@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
 import CookieBanner from './components/layout/CookieBanner';
+import { NewsletterPopup } from './components/layout/NewsletterPopup';
 
 // Pages
 import Home from './pages/Home';
@@ -21,6 +22,7 @@ function App() {
   return (
     <BrowserRouter>
       <CookieBanner />
+      <NewsletterPopup />
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Home />} />
