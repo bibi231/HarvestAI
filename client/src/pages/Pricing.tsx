@@ -11,10 +11,10 @@ const PLANS = [
 ];
 
 // TODO: replace with your actual Gumroad product permalinks from your dashboard
-const GUMROAD_LINKS: Record<string, string> = {
-  starter: 'https://gumroad.com/l/HARVESTAI_STARTER',
-  pro:     'https://gumroad.com/l/HARVESTAI_PRO',
-  power:   'https://gumroad.com/l/HARVESTAI_POWER',
+const GTSQUAD_LINKS: Record<string, string> = {
+  starter: 'https://app.gtsquad.co/checkout/HARVESTAI_STARTER',
+  pro:     'https://app.gtsquad.co/checkout/HARVESTAI_PRO',
+  power:   'https://app.gtsquad.co/checkout/HARVESTAI_POWER',
 };
 
 // TODO: replace with your actual LemonSqueezy checkout UUIDs
@@ -28,11 +28,11 @@ declare global {
   interface Window { FlutterwaveCheckout: (params: any) => void; }
 }
 
-type Gateway = 'flutterwave' | 'gumroad' | 'lemonsqueezy';
+type Gateway = 'flutterwave' | 'gtsquad' | 'lemonsqueezy';
 
 const GATEWAYS: { id: Gateway; label: string; sub: string; flag: string }[] = [
   { id: 'flutterwave',   label: 'Flutterwave', sub: 'NGN · Card/USSD/Transfer', flag: '🇳🇬' },
-  { id: 'gumroad',       label: 'Gumroad',     sub: 'USD · Card worldwide',     flag: '🌍' },
+  { id: 'gtsquad',       label: 'GTSquad',     sub: 'Card worldwide',            flag: '💳' },
   { id: 'lemonsqueezy',  label: 'LemonSqueezy',sub: 'USD · Card worldwide',     flag: '💛' },
 ];
 
@@ -73,10 +73,10 @@ export default function Pricing() {
 
   const handleExternalCheckout = (plan: typeof PLANS[0]) => {
     if (!user) { setAuthModal({ isOpen: true, mode: 'signup' }); return; }
-    const links = gateway === 'gumroad' ? GUMROAD_LINKS : LEMONSQ_LINKS;
+    const links = gateway === 'gtsquad' ? GTSQUAD_LINKS : LEMONSQ_LINKS;
     const base = links[plan.id];
     if (!base) return;
-    const url = gateway === 'gumroad'
+    const url = gateway === 'gtsquad'
       ? `${base}?email=${encodeURIComponent(user.email || '')}`
       : `${base}?checkout[email]=${encodeURIComponent(user.email || '')}`;
     window.open(url, '_blank', 'noopener');
