@@ -18,6 +18,46 @@ const AuthGuard = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// ── Sticky Anchor Ad ────────────────────────────────────────
+function StickyAnchorAd() {
+  const [visible, setVisible] = React.useState(true);
+  const [adLoaded, setAdLoaded] = React.useState(false);
+
+  React.useEffect(() => {
+    try {
+      const adsbygoogle = (window as any).adsbygoogle = (window as any).adsbygoogle || [];
+      adsbygoogle.push({});
+      setTimeout(() => {
+        const ins = document.querySelector('.sticky-anchor-ad ins.adsbygoogle') as HTMLElement | null;
+        if (ins && ins.getAttribute('data-ad-status') === 'filled') setAdLoaded(true);
+      }, 2500);
+    } catch(e) {}
+  }, []);
+
+  if (!visible) return null;
+
+  return (
+    <div className="sticky-anchor-ad">
+      <ins
+        className="adsbygoogle"
+        style={{ display: 'block' }}
+        data-ad-client="ca-pub-7798519284162823"
+        data-ad-slot="auto"
+        data-ad-format="auto"
+        data-full-width-responsive="true"
+      />
+      {!adLoaded && (
+        <div className="sticky-anchor-ad-placeholder">
+          <span>🌱 Ad space — <strong>reach thousands of farmers</strong></span>
+          <a href="mailto:peterjohn2343@gmail.com" className="sticky-anchor-ad-cta">Advertise here</a>
+        </div>
+      )}
+      <button className="sticky-anchor-ad-close" onClick={() => setVisible(false)} aria-label="Close ad">×</button>
+    </div>
+  );
+}
+// ────────────────────────────────────────────────────────────
+
 function App() {
   return (
     <BrowserRouter>
@@ -49,6 +89,7 @@ function App() {
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <StickyAnchorAd />
     </BrowserRouter>
   );
 }
