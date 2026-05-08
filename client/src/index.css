@@ -352,3 +352,30 @@ td:last-child { border-radius: 0 12px 12px 0; }
 .rai-nl-check { font-size: 20px; }
 .rai-nl-foot { font-size: 11px; color: rgba(255,255,255,0.3); margin-top: 14px; }
 .rai-nl-foot a { color: rgba(255,255,255,0.45); }
+
+/* ── Sticky Ad Placeholder ── */
+.sticky-anchor-ad-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  width: 100%;
+  padding: 4px 0;
+  font-size: 13px;
+  color: rgba(255,255,255,0.6);
+}
+.sticky-anchor-ad-placeholder strong { color: rgba(255,255,255,0.85); }
+.sticky-anchor-ad-cta {
+  padding: 6px 16px;
+  background: rgba(124,106,247,0.2);
+  border: 1px solid rgba(124,106,247,0.4);
+  border-radius: 20px;
+  color: #a99fff;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+.sticky-anchor-ad-cta:hover { background: rgba(124,106,247,0.35); color: #fff; }
