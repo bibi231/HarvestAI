@@ -135,7 +135,24 @@
     @keyframes hai-boot-spin  { to { transform:rotate(360deg); } }
     @keyframes hai-boot-float { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-6px); } }
   </style>
-</head>
+    <!-- ═══════════════════════════════════════════════════
+         Media.net Ads
+         TODO: Replace XXXXXXXX with your Media.net publisher ID
+         Get it from: https://www.media.net → Dashboard → Get Code
+         ═══════════════════════════════════════════════════ -->
+    <script>try{window._mNHandle=window._mNHandle||{};window._mNHandle.queue=window._mNHandle.queue||[];window._mNDetails=window._mNDetails||{};window._mNDetails.loadTag=window._mNDetails.loadTag||function(){for(var a=arguments,b=this._h,c=this._h=[],d=0;d<b.length;d++)c.push(b[d]);c.push(a)};window._mNDetails.loadTag.apply(window._mNDetails,["YOUR_MEDIANET_AD_SLOT","100%","auto"]);}catch(e){}</script>
+    <script async src="//contextual.media.net/dmedianet.js?cid=XXXXXXXX" crossorigin="anonymous"></script>
+    <!-- End Media.net -->
+    <!-- ═══════════════════════════════════════════════════
+         Ezoic Ads
+         TODO: Replace YOUR_EZOIC_PUBLISHER_ID with your Ezoic site ID
+         Get it from: https://publisher.ezoic.com → Settings → Ezoic Code
+         Option A — Ezoic Cloud Integration (recommended, no code needed)
+         Option B — Paste their head script below:
+         ═══════════════════════════════════════════════════ -->
+    <!-- <script async src="//www.ezojs.com/ezoic/sa.min.js?pub=YOUR_EZOIC_PUBLISHER_ID"></script> -->
+    <!-- End Ezoic -->
+  </head>
 <body>
   <div id="root">
     <div class="hai-boot" aria-busy="true">
