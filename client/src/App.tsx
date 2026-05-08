@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
+import CookieBanner from './components/layout/CookieBanner';
 
 // Pages
 import Home from './pages/Home';
@@ -19,6 +20,7 @@ const AuthGuard = ({ children }: { children: React.ReactNode }) => {
 function App() {
   return (
     <BrowserRouter>
+      <CookieBanner />
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Home />} />
