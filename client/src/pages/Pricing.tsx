@@ -116,7 +116,7 @@ export default function Pricing() {
           ))}
         </div>
 
-        {(gateway === 'gumroad' || gateway === 'lemonsqueezy') && (
+        {(gateway === 'gtsquad' || gateway === 'lemonsqueezy') && (
           <p className="text-center text-[10px] text-muted font-mono uppercase tracking-widest mb-8 opacity-60">
             USD pricing · You will be redirected to complete payment securely
           </p>
