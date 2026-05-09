@@ -64,11 +64,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <div className="bento-card bg-accent/[0.02] border-accent/20 p-5 group">
             <span className="section-label mb-2 opacity-70 group-hover:opacity-100 transition-opacity">Credits Available</span>
             <div className="flex items-end justify-between">
-              <span className="text-3xl font-black text-primary font-mono tracking-tighter transition-all group-hover:text-accent">{credits}</span>
+              <span className="text-3xl font-black text-primary font-mono tracking-tighter transition-all group-hover:text-accent">{credits?.credits ?? 0}</span>
               <NavLink to="/pricing" className="text-[10px] font-black text-accent hover:underline mb-1">REPLENISH +</NavLink>
             </div>
             <div className="mt-4 h-1.5 w-full bg-black/50 rounded-full overflow-hidden border border-default">
-              <div className="h-full bg-accent transition-all duration-1000 shadow-[0_0_10px_var(--accent)]" style={{ width: `${Math.min(100, (credits / 500) * 100)}%` }} />
+              <div className="h-full bg-accent transition-all duration-1000 shadow-[0_0_10px_var(--accent)]" style={{ width: `${Math.min(100, ((credits?.credits ?? 0) / 500) * 100)}%` }} />
             </div>
           </div>
 
