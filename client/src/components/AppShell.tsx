@@ -1,15 +1,17 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { signOut as firebaseSignOut } from 'firebase/auth';
+import { auth } from '../lib/firebase';
+import { useAuthStore } from '../store/authStore';
 import { useCredits } from '../hooks/useCredits';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
-  const { user, signOut } = useAuth();
+  const { user } = useAuthStore();
   const { credits } = useCredits();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    await signOut();
+    await firebaseSignOut(auth);
     navigate('/');
   };
 
