@@ -18,9 +18,8 @@ const AuthGuard = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-// ── Sticky Anchor Ad ────────────────────────────────────────
-function StickyAnchorAd() {
-  const [visible, setVisible] = React.useState(true);
+// ── Inline Ad Banner (between content and footer) ────────
+function InlineAdBanner() {
   const [adLoaded, setAdLoaded] = React.useState(false);
 
   React.useEffect(() => {
@@ -28,16 +27,14 @@ function StickyAnchorAd() {
       const adsbygoogle = (window as any).adsbygoogle = (window as any).adsbygoogle || [];
       adsbygoogle.push({});
       setTimeout(() => {
-        const ins = document.querySelector('.sticky-anchor-ad ins.adsbygoogle') as HTMLElement | null;
+        const ins = document.querySelector('.inline-ad-banner ins.adsbygoogle') as HTMLElement | null;
         if (ins && ins.getAttribute('data-ad-status') === 'filled') setAdLoaded(true);
       }, 2500);
     } catch(e) {}
   }, []);
 
-  if (!visible) return null;
-
   return (
-    <div className="sticky-anchor-ad">
+    <div className="inline-ad-banner">
       <ins
         className="adsbygoogle"
         style={{ display: 'block' }}
@@ -47,16 +44,15 @@ function StickyAnchorAd() {
         data-full-width-responsive="true"
       />
       {!adLoaded && (
-        <div className="sticky-anchor-ad-placeholder">
-          <span>🌱 Ad space — <strong>reach thousands of farmers</strong></span>
-          <a href="mailto:peterjohn2343@gmail.com" className="sticky-anchor-ad-cta">Advertise here</a>
+        <div className="inline-ad-placeholder">
+          <span>🌱 <strong>Reach thousands of farmers</strong> — advertise with HarvestAI</span>
+          <a href="mailto:peterjohn2343@gmail.com" className="inline-ad-cta">Partner with us</a>
         </div>
       )}
-      <button className="sticky-anchor-ad-close" onClick={() => setVisible(false)} aria-label="Close ad">×</button>
     </div>
   );
 }
-// ────────────────────────────────────────────────────────────
+// ────────────────────────────────────────────────────────
 
 function App() {
   return (
@@ -89,7 +85,7 @@ function App() {
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-      <StickyAnchorAd />
+      <InlineAdBanner />
     </BrowserRouter>
   );
 }
