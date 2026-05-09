@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../hooks/useAuth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { auth } from '../lib/firebase';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -14,7 +15,9 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
-  const { signIn, signUp, signInWithGoogle } = useAuth();
+  const signIn = (email: string, password: string) => signInWithEmailAndPassword(auth, email, password);
+  const signUp = (email: string, password: string) => createUserWithEmailAndPassword(auth, email, password);
+  const signInWithGoogle = () => signInWithPopup(auth, new GoogleAuthProvider());
 
   useEffect(() => {
     setMode(initialMode);
