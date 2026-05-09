@@ -18,7 +18,11 @@ export default function Dashboard() {
   const [url, setUrl] = useState('');
   const [description, setDescription] = useState('');
 
-  const { status, progress, results, error } = useJobStream(jobId);
+  const { job, isDone } = useJobStream(jobId);
+  const status = job?.status ?? null;
+  const progress = job?.progress ?? 0;
+  const results = job?.results ?? [];
+  const error = job?.error ?? null;
 
   const handleStart = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -136,12 +140,12 @@ export default function Dashboard() {
                 )}
                 
                 <button 
-                  disabled={loading || !!jobId && status === 'running' || credits <= 0}
+                  disabled={loading || !!jobId && status === 'running' || (credits?.remaining ?? 0) <= 0}
                   className={`btn btn-primary w-full py-5 text-base tracking-widest ${
-                    credits <= 0 ? 'grayscale opacity-40 cursor-not-allowed' : ''
+                    (credits?.remaining ?? 0) <= 0 ? 'grayscale opacity-40 cursor-not-allowed' : ''
                   }`}
                 >
-                  {loading ? 'Initializing Engine...' : jobId && status === 'running' ? 'Scanning Sources...' : credits <= 0 ? 'Insufficient Credits' : 'Start Harvesting →'}
+                  {loading ? 'Initializing Engine...' : jobId && status === 'running' ? 'Scanning Sources...' : (credits?.remaining ?? 0) <= 0 ? 'Insufficient Credits' : 'Start Harvesting →'}
                 </button>
               </form>
             </div>
