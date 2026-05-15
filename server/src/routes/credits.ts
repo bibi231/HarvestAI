@@ -134,68 +134,83 @@ router.get('/history', verifyFirebaseToken, async (req: any, res: any) => {
   res.json({ payments: history });
 });
 
-// ── Squad (GTSquad) checkout — returns a hosted payment link ─────────────────
-const SQUAD_LINKS_HARVESTAI: Record<string, string> = {
-  starter: 'https://pay.squadco.com/link/JPRT9N',
-  pro:     'https://pay.squadco.com/link/F8GSUU',
-  power:   'https://pay.squadco.com/link/NRQDD6',
+// ── Pack catalog ────────────────────────────────────────────────────────────
+// NGN amounts in kobo. USD amounts in cents.
+const PACKS: Record<string, { credits: number; ngnKobo: number; usdCents: number; name: string }> = {
+  starter: { credits: 100,  ngnKobo: 250000,  usdCents: 800,  name: 'Starter (100 credits)' },
+  pro:     { credits: 300,  ngnKobo: 600000,  usdCents: 2000, name: 'Pro (300 credits)' },
+  power:   { credits: 1000, ngnKobo: 1500000, usdCents: 5000, name: 'Power (1000 credits)' },
 };
+const SQUAD_BASE = process.env.SQUAD_API_BASE || 'https://api-d.squadco.com';
+const CLIENT_URL = process.env.CLIENT_URL || 'https://harvestai.com.ng';
 
+// ── Squad NGN checkout — transaction-init API (reusable, fresh URL per user) ─
 router.post('/gtsquad-checkout', verifyFirebaseToken, async (req: any, res: any) => {
   try {
     const { packId } = req.body;
     const email: string = (req as any).user!.email || '';
-    const baseUrl = SQUAD_LINKS_HARVESTAI[packId as string];
-    if (!baseUrl) return res.status(400).json({ message: 'Invalid pack' });
-    const checkoutUrl = email ? `${baseUrl}?email=${encodeURIComponent(email)}` : baseUrl;
-    return res.json({ checkoutUrl });
-  } catch (err) {
-    res.status(500).json({ message: 'Checkout failed' });
-  }
+    const userId: string = (req as any).user!.uid || '';
+    const pack = PACKS[packId as string];
+    if (!pack)  return res.status(400).json({ message: 'Invalid pack' });
+    if (!email) return res.status(400).json({ message: 'No email on user' });
+
+    const secretKey = process.env.GTSQUAD_SECRET_KEY || process.env.SQUAD_SECRET_KEY;
+    if (!secretKey) return res.status(500).json({ message: 'Squad not configured (missing GTSQUAD_SECRET_KEY)' });
+
+    const txRef = `harvestai_${userId.slice(0, 10)}_${Date.now()}`;
+    const r = await fetch(`${SQUAD_BASE}/transaction/initiate`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${secretKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        amount: pack.ngnKobo,
+        email,
+        currency: 'NGN',
+        initiate_type: 'inline',
+        transaction_ref: txRef,
+        callback_url: `${CLIENT_URL}/app?paid=1`,
+        customer_name: (req as any).user!.name || email,
+        metadata: { pack: packId, userId, credits: pack.credits },
+      }),
+    });
+    const j: any = await r.json().catch(() => ({}));
+    const checkoutUrl = j?.data?.checkout_url;
+    if (!r.ok || !checkoutUrl) return res.status(502).json({ message: j?.message || 'Squad init failed' });
+    return res.json({ checkoutUrl, reference: txRef });
+  } catch (err) { res.status(500).json({ message: 'Checkout failed' }); }
 });
 
-// ── Monnify checkout — uses Squad NGN links as fallback until Monnify KYC approved ──
-const MONNIFY_LINKS_HARVESTAI: Record<string, string> = {
-  starter: 'https://pay.squadco.com/link/JPRT9N',
-  pro:     'https://pay.squadco.com/link/F8GSUU',
-  power:   'https://pay.squadco.com/link/NRQDD6',
+// ── Monnify checkout (KYC pending) — temporarily uses Squad ──────────────────
+router.post('/monnify-checkout', verifyFirebaseToken, async (req: any, res: any) => {
+  // Until Monnify KYC is approved, route through Squad (same as gtsquad-checkout)
+  (req as any).body = req.body;
+  return (router as any).handle({ ...req, url: '/gtsquad-checkout', method: 'POST' }, res);
+});
+
+// ── Lemon Squeezy USD checkout — pre-built variant URLs from env ─────────────
+// Create products at app.lemonsqueezy.com → Products. Copy each "Buy now"
+// share URL into env vars: LS_URL_STARTER, LS_URL_PRO, LS_URL_POWER.
+const LS_URLS: Record<string, string | undefined> = {
+  starter: process.env.LS_URL_STARTER,
+  pro:     process.env.LS_URL_PRO,
+  power:   process.env.LS_URL_POWER,
 };
 
-router.post('/monnify-checkout', verifyFirebaseToken, async (req: any, res: any) => {
+router.post('/lemonsqueezy-checkout', verifyFirebaseToken, async (req: any, res: any) => {
   try {
     const { packId } = req.body;
     const email: string = (req as any).user!.email || '';
-    const baseUrl = MONNIFY_LINKS_HARVESTAI[packId as string];
-    if (!baseUrl) return res.status(400).json({ message: 'Invalid pack' });
-    const checkoutUrl = email ? `${baseUrl}?customerEmail=${encodeURIComponent(email)}` : baseUrl;
-    return res.json({ checkoutUrl });
-  } catch (err) {
-    res.status(500).json({ message: 'Checkout failed' });
-  }
-});
+    const userId: string = (req as any).user!.uid || '';
+    const pack = PACKS[packId as string];
+    const baseUrl = LS_URLS[packId as string];
+    if (!pack)    return res.status(400).json({ message: 'Invalid pack' });
+    if (!baseUrl) return res.status(500).json({ message: `LemonSqueezy URL not configured for pack=${packId}. Set LS_URL_${packId.toUpperCase()} in env.` });
 
-// ── Lemon Squeezy checkout — USD hosted checkout links ────────────────────────
-// TODO: replace UUIDs with real product variant IDs from app.lemonsqueezy.com/products
-const LEMON_LINKS_HARVESTAI: Record<string, string> = {
-    starter: 'https://harvestai.lemonsqueezy.com/checkout/buy/STARTER_UUID',
-    pro:     'https://harvestai.lemonsqueezy.com/checkout/buy/PRO_UUID',
-    power:   'https://harvestai.lemonsqueezy.com/checkout/buy/POWER_UUID',
-};
-
-router.post('/lemonsqueezy-checkout', verifyFirebaseToken, async (req: any, res: any, next: any) => {
-    try {
-        const { packId } = req.body;
-        const email: string = (req as any).user!.email || '';
-        const baseUrl = LEMON_LINKS_HARVESTAI[packId as string];
-        if (!baseUrl || baseUrl.includes('_UUID')) {
-            return res.status(503).json({ message: 'Lemon Squeezy checkout not yet configured. Please use GTSquad or Monnify.' });
-        }
-        const url = new URL(baseUrl);
-        if (email) url.searchParams.set('checkout[email]', email);
-        return res.json({ checkoutUrl: url.toString() });
-    } catch (err) {
-        res.status(500).json({ message: 'Checkout failed' });
-    }
+    const url = new URL(baseUrl);
+    if (email)  url.searchParams.set('checkout[email]', email);
+    url.searchParams.set('checkout[custom][userId]', userId);
+    url.searchParams.set('checkout[custom][pack]',   packId);
+    return res.json({ checkoutUrl: url.toString() });
+  } catch (err) { res.status(500).json({ message: 'Checkout failed' }); }
 });
 
 export default router;
