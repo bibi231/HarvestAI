@@ -1,8 +1,8 @@
 import axios from 'axios';
-import { getIdToken, signOut } from './firebase.js';
+import { getIdToken, signOut } from './firebase';
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:4000',
   timeout: 120000, // 2 min — scraping jobs can be slow
 });
 

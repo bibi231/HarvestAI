@@ -1,137 +1,453 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { api } from '../lib/api';
+import { Navbar } from '../components/Navbar';
 
 interface Job {
   id: string;
-  type: 'leads' | 'extract';
-  status: 'pending' | 'running' | 'completed' | 'failed';
+  mode: string;
+  status: string;
+  resultCount: number;
+  creditsUsed: number;
+  inputData: any;
   createdAt: string;
-  metadata: any;
 }
 
-export default function History() {
-  const [jobs, setJobs] = useState<Job[]>([]);
+const MODE_META: Record<string, { label: string; icon: string }> = {
+  leads:        { label: 'Lead Finder',    icon: '🎯' },
+  extract:      { label: 'Data Extractor', icon: '🔍' },
+  scrape:       { label: 'Data Extractor', icon: '🔍' },
+  serp:         { label: 'Google Search',  icon: '🌐' },
+  email_finder: { label: 'Email Finder',   icon: '📧' },
+  site_crawl:   { label: 'Site Crawler',   icon: '🗺️' },
+  bulk_upload:  { label: 'Bulk Upload',    icon: '📂' },
+  price_check:  { label: 'Price Monitor',  icon: '💰' },
+  enrichment:   { label: 'Enrichment',     icon: '✨' },
+};
+
+function getMeta(mode: string) {
+  return MODE_META[mode] ?? { label: mode.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), icon: '⚡' };
+}
+
+function jobTitle(job: Job) {
+  const d = job.inputData ?? {};
+  if (d.businessType && d.location) return `${d.businessType} in ${d.location}`;
+  if (d.businessType) return d.businessType;
+  if (d.query) return d.query;
+  if (Array.isArray(d.urls) && d.urls[0]) return d.urls[0].replace(/^https?:\/\//, '');
+  if (d.instruction) return d.instruction.slice(0, 60);
+  return 'Untitled job';
+}
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString('en-NG', {
+    day: 'numeric', month: 'short', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  });
+}
+
+/* ── View / Export modal ─────────────────────────────────────────── */
+function ViewModal({ job, onClose }: { job: Job; onClose: () => void }) {
+  const [results, setResults] = useState<any[] | null>(null);
   const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState('');
+  const [copied, setCopied] = useState(false);
+  const [shareUrl, setShareUrl] = useState('');
+  const [sharing, setSharing] = useState(false);
+  const meta = getMeta(job.mode);
 
   useEffect(() => {
-    const fetchJobs = async () => {
-      try {
-        const { data } = await api.get('/api/jobs');
-        setJobs(data);
-      } catch (err) {
-        console.error('Failed to fetch jobs', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchJobs();
-  }, []);
+    api.get(`/api/jobs/${job.id}/results`)
+      .then(({ data }) => setResults(Array.isArray(data) ? data : []))
+      .catch(() => setErr('Could not load results.'))
+      .finally(() => setLoading(false));
+  }, [job.id]);
 
-  const handleDownload = async (jobId: string) => {
+  const downloadCSV = () => {
+    if (!results?.length) return;
+    const headers = Object.keys(results[0]).join(',');
+    const rows = results.map(r =>
+      Object.values(r).map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')
+    ).join('\n');
+    const blob = new Blob([`${headers}\n${rows}`], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `harvestai_${job.id.slice(0, 8)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const copyJSON = () => {
+    if (!results?.length) return;
+    navigator.clipboard.writeText(JSON.stringify(results, null, 2));
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const getShareLink = async () => {
+    setSharing(true);
     try {
-      const { data } = await api.get(`/api/jobs/${jobId}`);
-      if (!data.results || data.results.length === 0) return alert('No results found for this job');
-      
-      const headers = Object.keys(data.results[0]).join(',');
-      const rows = data.results.map((r: any) => Object.values(r).join(',')).join('\n');
-      const csvContent = `data:text/csv;charset=utf-8,${headers}\n${rows}`;
-      const encodedUri = encodeURI(csvContent);
-      const link = document.createElement('a');
-      link.setAttribute('href', encodedUri);
-      link.setAttribute('download', `harvestai_job_${jobId.slice(0, 8)}.csv`);
-      document.body.appendChild(link);
-      link.click();
-    } catch (err) {
-      alert('Failed to download results');
+      const { data } = await api.post(`/api/jobs/${job.id}/share`);
+      setShareUrl(data.shareUrl);
+      try { await navigator.clipboard.writeText(data.shareUrl); } catch (_) {}
+    } catch {
+      setErr('Could not generate share link.');
+    } finally {
+      setSharing(false);
     }
   };
 
+  const columns = results?.length ? Object.keys(results[0]) : [];
+
   return (
-    <div className="space-y-12 animate-slide-up">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-10">
-        <div>
-          <h1 className="text-5xl font-black text-primary tracking-tighter mb-3 italic uppercase">Execution History</h1>
-          <p className="text-secondary text-sm font-medium uppercase tracking-widest opacity-60">Audit and retrieve past extractions.</p>
-        </div>
-      </div>
-
-      <div className="bento-card overflow-hidden bg-white/[0.01]">
-        <div className="flex items-center justify-between mb-10">
-           <span className="section-label mb-0">System Log Archive</span>
-           <span className="text-[10px] font-black text-muted uppercase tracking-widest font-mono">TOTAL_RECORDS_{jobs.length}</span>
-        </div>
-
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-40">
-             <div className="spinner mb-6" />
-             <div className="text-xs font-black text-accent uppercase tracking-widest animate-pulse italic">Reading Silo Layers...</div>
+    <div
+      style={{
+        position: 'fixed', inset: 0, zIndex: 400,
+        background: 'rgba(0,0,0,0.82)', backdropFilter: 'blur(8px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+      }}
+      onClick={e => e.target === e.currentTarget && onClose()}
+    >
+      <div style={{
+        background: 'var(--bg-2)', border: '1px solid var(--border-2)',
+        borderRadius: 20, width: '100%', maxWidth: 900, maxHeight: '88vh',
+        display: 'flex', flexDirection: 'column', boxShadow: '0 32px 80px rgba(0,0,0,0.6)',
+        overflow: 'hidden',
+      }}>
+        {/* Modal header */}
+        <div style={{
+          display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
+          padding: '20px 24px', borderBottom: '1px solid var(--border-1)',
+        }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <span style={{ fontSize: 18 }}>{meta.icon}</span>
+              <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--amber)' }}>
+                {meta.label}
+              </span>
+            </div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-1)', lineHeight: 1.3 }}>
+              {jobTitle(job)}
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 4 }}>
+              {formatDate(job.createdAt)} · {job.resultCount ?? 0} results
+            </div>
           </div>
-        ) : jobs.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-40 text-center opacity-20">
-            <div className="text-6xl mb-8 select-none">📜</div>
-            <div className="text-sm font-black tracking-widest uppercase italic text-primary">Archive is empty</div>
-            <div className="text-[9px] mt-3 text-muted uppercase tracking-[0.4em] font-medium leading-none">AWAITING COMPLETED PROTOCOLS</div>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="text-left text-[10px] font-black text-muted uppercase tracking-[0.3em] italic">
-                  <th className="pb-6 pr-6 pl-0">Identifer</th>
-                  <th className="pb-6 pr-6">Engine Mode</th>
-                  <th className="pb-6 pr-6">Timestamp</th>
-                  <th className="pb-6 pr-6">Status</th>
-                  <th className="pb-6 text-right">Manifest</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
-                {jobs.map((job) => (
-                  <tr key={job.id} className="group hover:bg-white/[0.02]">
-                    <td className="py-6 pr-6 pl-0">
-                      <div className="font-extrabold text-primary text-xl tracking-tighter italic group-hover:text-accent transition-colors flex items-center gap-4">
-                        <span className="w-2 h-2 rounded-full bg-accent/20 border border-accent/40" />
-                        {job.id.slice(0, 8)}
-                      </div>
-                      <div className="text-[10px] text-muted font-bold mt-2 uppercase tracking-tighter truncate max-w-[200px] font-mono group-hover:text-secondary transition-colors">
-                        {job.metadata?.businessType || job.metadata?.urls?.[0]}
-                      </div>
-                    </td>
-                    <td className="py-6 pr-6">
-                       <span className="text-[10px] font-black uppercase text-secondary bg-elevated px-3 py-1.5 rounded-lg border border-white/5 transition-all group-hover:bg-accent group-hover:text-black">
-                        {job.type.toUpperCase()}
-                       </span>
-                    </td>
-                    <td className="py-6 pr-6 text-muted text-xs font-mono font-bold italic opacity-60 group-hover:opacity-100 uppercase tracking-tighter">
-                      {new Date(job.createdAt).toLocaleString().split(',').join(' _ ')}
-                    </td>
-                    <td className="py-6 pr-6">
-                       <div className={`text-[10px] font-black uppercase tracking-widest italic border border-white/5 px-2 py-0.5 rounded flex items-center gap-2 ${
-                          job.status === 'completed' ? 'text-success bg-success/10 border-success/20' : 
-                          job.status === 'failed' ? 'text-error bg-error/10 border-error/20' : 'text-accent bg-accent/10 border-accent/20'
-                       }`}>
-                        <span className={`w-1 h-1 rounded-full ${job.status === 'completed' ? 'bg-success' : job.status === 'failed' ? 'bg-error' : 'bg-accent animate-pulse'}`} />
-                        {job.status}
-                       </div>
-                    </td>
-                    <td className="py-6 text-right">
-                      {job.status === 'completed' ? (
-                        <button 
-                          onClick={() => handleDownload(job.id)}
-                          className="btn-secondary px-4 py-2 text-[9px] font-black tracking-widest uppercase transition-all hover:bg-white/10"
-                        >
-                          DOWNLOAD ↓
-                        </button>
-                      ) : (
-                        <span className="text-[9px] font-black text-muted uppercase tracking-widest opacity-30">NOT_RETRIEVABLE</span>
-                      )}
-                    </td>
+          <button onClick={onClose} className="modal-x" style={{ marginLeft: 12, flexShrink: 0 }}>✕</button>
+        </div>
+
+        {/* Toolbar */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 10, padding: '12px 24px',
+          borderBottom: '1px solid var(--border-1)', flexWrap: 'wrap',
+        }}>
+          <button
+            onClick={downloadCSV}
+            disabled={!results?.length}
+            className="btn btn-primary"
+            style={{ height: 34, fontSize: 12, padding: '0 14px', fontWeight: 700 }}
+          >
+            ↓ Download CSV
+          </button>
+          <button
+            onClick={copyJSON}
+            disabled={!results?.length}
+            className="btn btn-secondary"
+            style={{ height: 34, fontSize: 12, padding: '0 14px', fontWeight: 700 }}
+          >
+            {copied ? '✓ Copied' : 'Copy JSON'}
+          </button>
+          <button
+            onClick={getShareLink}
+            disabled={sharing}
+            className="btn btn-secondary"
+            style={{ height: 34, fontSize: 12, padding: '0 14px', fontWeight: 700 }}
+          >
+            {sharing ? 'Generating…' : shareUrl ? '✓ Link copied' : '🔗 Share link'}
+          </button>
+          {shareUrl && (
+            <span style={{ fontSize: 12, color: 'var(--amber)', opacity: 0.8, fontFamily: 'monospace', maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {shareUrl}
+            </span>
+          )}
+        </div>
+
+        {/* Results body */}
+        <div style={{ flex: 1, overflow: 'auto', padding: 24 }}>
+          {loading && (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '60px 0' }}>
+              <div className="spinner" />
+            </div>
+          )}
+          {err && (
+            <div style={{ color: '#f87171', fontSize: 14, textAlign: 'center', padding: '40px 0' }}>{err}</div>
+          )}
+          {results && results.length === 0 && !err && (
+            <div style={{ color: 'var(--text-3)', fontSize: 14, textAlign: 'center', padding: '60px 0' }}>
+              No results available for this job.
+            </div>
+          )}
+          {results && results.length > 0 && (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                <thead>
+                  <tr>
+                    {columns.map(col => (
+                      <th key={col} style={{
+                        textAlign: 'left', padding: '0 16px 12px 0',
+                        fontSize: 11, fontWeight: 700, letterSpacing: '0.12em',
+                        textTransform: 'uppercase', color: 'var(--text-3)',
+                        whiteSpace: 'nowrap',
+                      }}>
+                        {col.replace(/_/g, ' ')}
+                      </th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                </thead>
+                <tbody>
+                  {results.slice(0, 200).map((row, i) => (
+                    <tr key={i} style={{ borderTop: '1px solid var(--border-1)' }}>
+                      {columns.map(col => (
+                        <td key={col} style={{
+                          padding: '11px 16px 11px 0',
+                          color: 'var(--text-2)', maxWidth: 220,
+                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        }}>
+                          {String(row[col] ?? '—')}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {results.length > 200 && (
+                <p style={{ fontSize: 12, color: 'var(--text-3)', textAlign: 'center', marginTop: 16 }}>
+                  Showing first 200 of {results.length} rows. Download CSV for full data.
+                </p>
+              )}
+            </div>
+          )}
+        </div>
       </div>
+    </div>
+  );
+}
+
+/* ── Skeleton ─────────────────────────────────────────────────────── */
+function JobSkeleton() {
+  return (
+    <div style={{
+      display: 'grid', gridTemplateColumns: '1fr 140px 120px 120px 80px 120px',
+      alignItems: 'center', gap: 16, padding: '16px 24px',
+      borderTop: '1px solid var(--border-1)',
+    }}>
+      {[70, 50, 40, 30, 20, 40].map((w, i) => (
+        <div key={i} className="skeleton" style={{ height: 14, width: `${w}%`, borderRadius: 6 }} />
+      ))}
+    </div>
+  );
+}
+
+/* ── Main page ────────────────────────────────────────────────────── */
+export default function History() {
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [viewJob, setViewJob] = useState<Job | null>(null);
+
+  const fetchJobs = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const { data } = await api.get('/api/jobs');
+      setJobs(data.jobs ?? data ?? []);
+    } catch {
+      setError('Could not load job history.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchJobs(); }, [fetchJobs]);
+
+  return (
+    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+      <Navbar />
+      <main style={{ maxWidth: 1100, margin: '0 auto', padding: '40px 24px 100px' }}>
+
+        {/* Header */}
+        <div style={{ marginBottom: 32, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--amber)', marginBottom: 8 }}>
+              History
+            </div>
+            <h1 style={{ fontSize: 32, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.02em', margin: 0, lineHeight: 1 }}>
+              Job History
+            </h1>
+            <p style={{ fontSize: 14, color: 'var(--text-3)', marginTop: 8 }}>
+              View, export, and share results from past harvests.
+            </p>
+          </div>
+          <button
+            onClick={fetchJobs}
+            className="btn btn-secondary"
+            style={{ height: 36, fontSize: 13, padding: '0 16px', fontWeight: 600 }}
+          >
+            ↻ Refresh
+          </button>
+        </div>
+
+        {/* Card */}
+        <div style={{
+          background: 'var(--bg-2)', border: '1px solid var(--border-2)',
+          borderRadius: 16, overflow: 'hidden',
+        }}>
+          {/* Card header */}
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '14px 24px', borderBottom: '1px solid var(--border-1)',
+          }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-3)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+              {loading ? 'Loading…' : `${jobs.length} job${jobs.length !== 1 ? 's' : ''}`}
+            </span>
+            {error && (
+              <span style={{ fontSize: 12, color: '#f87171' }}>
+                {error} <button onClick={fetchJobs} style={{ color: '#f87171', fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer', fontSize: 12 }}>Retry</button>
+              </span>
+            )}
+          </div>
+
+          {/* Column headers */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 150px 130px 100px 80px 130px',
+            gap: 8, padding: '10px 24px',
+            borderBottom: '1px solid var(--border-1)',
+          }}>
+            {['Job', 'Type', 'Date', 'Status', 'Results', 'Actions'].map((h, i) => (
+              <div key={h} style={{
+                fontSize: 10, fontWeight: 700, letterSpacing: '0.14em',
+                textTransform: 'uppercase', color: 'var(--text-3)',
+                textAlign: i === 5 ? 'right' : 'left',
+              }}>{h}</div>
+            ))}
+          </div>
+
+          {/* Skeleton rows */}
+          {loading && [1,2,3,4,5].map(i => <JobSkeleton key={i} />)}
+
+          {/* Empty state */}
+          {!loading && jobs.length === 0 && !error && (
+            <div style={{ padding: '64px 24px', textAlign: 'center' }}>
+              <div style={{ fontSize: 40, marginBottom: 16 }}>📋</div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-2)', marginBottom: 6 }}>No jobs yet</div>
+              <div style={{ fontSize: 13, color: 'var(--text-3)' }}>Run your first harvest to see results here.</div>
+            </div>
+          )}
+
+          {/* Job rows */}
+          {!loading && jobs.map(job => {
+            const meta = getMeta(job.mode);
+            const isDone = job.status === 'done';
+            const isFailed = job.status === 'failed';
+            return (
+              <div
+                key={job.id}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 150px 130px 100px 80px 130px',
+                  gap: 8, alignItems: 'center',
+                  padding: '14px 24px',
+                  borderTop: '1px solid var(--border-1)',
+                  transition: 'background 0.15s',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-3)')}
+                onMouseLeave={e => (e.currentTarget.style.background = '')}
+              >
+                {/* Job title */}
+                <div>
+                  <div style={{
+                    fontSize: 13, fontWeight: 600, color: 'var(--text-1)',
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    maxWidth: 280,
+                  }} title={jobTitle(job)}>
+                    {jobTitle(job)}
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--text-3)', fontFamily: 'monospace', marginTop: 2 }}>
+                    {job.id.slice(0, 8)}
+                  </div>
+                </div>
+
+                {/* Type */}
+                <div>
+                  <span style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 5,
+                    fontSize: 11, fontWeight: 600,
+                    padding: '4px 10px', borderRadius: 8,
+                    background: 'var(--bg-4)', border: '1px solid var(--border-2)',
+                    color: 'var(--text-2)', whiteSpace: 'nowrap',
+                  }}>
+                    <span>{meta.icon}</span>
+                    {meta.label}
+                  </span>
+                </div>
+
+                {/* Date */}
+                <div style={{ fontSize: 12, color: 'var(--text-3)', whiteSpace: 'nowrap' }}>
+                  {formatDate(job.createdAt)}
+                </div>
+
+                {/* Status */}
+                <div>
+                  <span style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 5,
+                    fontSize: 11, fontWeight: 700,
+                    padding: '4px 10px', borderRadius: 8,
+                    ...(isDone
+                      ? { background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.2)', color: '#4ade80' }
+                      : isFailed
+                      ? { background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#f87171' }
+                      : { background: 'rgba(245,166,35,0.1)', border: '1px solid rgba(245,166,35,0.2)', color: 'var(--amber)' }
+                    ),
+                  }}>
+                    <span style={{
+                      width: 6, height: 6, borderRadius: '50%',
+                      background: isDone ? '#4ade80' : isFailed ? '#f87171' : 'var(--amber)',
+                      ...((!isDone && !isFailed) ? { animation: 'pulse 1.5s ease infinite' } : {}),
+                    }} />
+                    {isDone ? 'Done' : isFailed ? 'Failed' : 'Running'}
+                  </span>
+                </div>
+
+                {/* Results */}
+                <div style={{
+                  fontSize: 13, fontWeight: 600, fontFamily: 'monospace',
+                  color: (job.resultCount ?? 0) > 0 ? 'var(--text-1)' : 'var(--text-3)',
+                }}>
+                  {job.resultCount ?? 0}
+                </div>
+
+                {/* Actions */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  {isDone ? (
+                    <button
+                      onClick={() => setViewJob(job)}
+                      className="btn btn-primary"
+                      style={{ height: 32, fontSize: 12, padding: '0 14px', fontWeight: 700 }}
+                    >
+                      View & Export →
+                    </button>
+                  ) : (
+                    <span style={{ fontSize: 12, color: 'var(--text-3)' }}>—</span>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </main>
+
+      {viewJob && <ViewModal job={viewJob} onClose={() => setViewJob(null)} />}
     </div>
   );
 }

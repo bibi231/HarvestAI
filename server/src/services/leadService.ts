@@ -4,6 +4,7 @@ import { eq } from 'drizzle-orm';
 import { scrapeUrl } from './scraperService.js';
 import { scrapeWithPlaywright } from './playwrightService.js';
 import { extractLeads, type LeadRow } from './aiService.js';
+import { notifyJobComplete } from './jobCompleteNotifier.js';
 
 // URL builders for each directory source
 function buildSourceUrl(sourceId: string, businessType: string, location: string): string {
@@ -102,6 +103,11 @@ export async function runLeadJob(
       creditsUsed: sources.length,
       completedAt: new Date(),
     }).where(eq(harvestJobs.id, jobId));
+
+    const { deductCredits } = await import('./creditsService.js');
+    await deductCredits(userId, sources.length).catch(() => {});
+
+    notifyJobComplete(userId, jobId, 'leads', allLeads, allLeads.length).catch(() => {});
 
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);

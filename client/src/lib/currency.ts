@@ -1,4 +1,4 @@
-import type { Currency } from '../types/index.js';
+import type { Currency } from '../types';
 
 export function detectCurrency(): Currency {
   try {

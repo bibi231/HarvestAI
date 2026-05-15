@@ -1,188 +1,308 @@
-import React, { useState, useEffect } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
-import AuthModal from '../components/AuthModal';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../store/authStore';
+import { HARVEST_MODES } from '../types/index';
+import { Navbar } from '../components/Navbar';
+
+const WORDS = ['business leads', 'contact data', 'product prices', 'competitor info', 'website data', 'email addresses'];
 
 export default function Home() {
-  const { user } = useAuth();
+  const { user } = useAuthStore();
+  const [wi, setWi] = useState(0);
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [newsletterLoading, setNewsletterLoading] = useState(false);
+  const [newsletterSuccess, setNewsletterSuccess] = useState(false);
+  const [txt, setTxt] = useState('');
+  const [del, setDel] = useState(false);
+  const t = useRef<any>(null);
   const navigate = useNavigate();
-  const [scrolled, setScrolled] = useState(false);
-  const [authModal, setAuthModal] = useState<{isOpen: boolean, mode: 'login' | 'signup'}>({
-    isOpen: false,
-    mode: 'login'
-  });
 
-  const [rotatingText, setRotatingText] = useState('any website data.');
-  const texts = ['any website data.', 'competitor info.', 'business leads.', 'product pricing.'];
-  
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', handleScroll);
-    
-    let i = 0;
-    const interval = setInterval(() => {
-      i = (i + 1) % texts.length;
-      setRotatingText(texts[i]);
-    }, 3000);
+    const w = WORDS[wi];
+    t.current = setTimeout(() => {
+      if (!del) {
+        if (txt.length < w.length) setTxt(w.slice(0, txt.length + 1));
+        else setTimeout(() => setDel(true), 2000);
+      } else {
+        if (txt.length > 0) setTxt(txt.slice(0, -1));
+        else { setDel(false); setWi(i => (i + 1) % WORDS.length); }
+      }
+    }, del ? 42 : 82);
+    return () => clearTimeout(t.current);
+  }, [txt, del, wi]);
 
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      clearInterval(interval);
-    };
-  }, []);
-
-  const openAuth = (mode: 'login' | 'signup') => {
+  const handleStartFree = () => {
+    const user = useAuthStore.getState().user;
     if (user) {
       navigate('/app');
     } else {
-      setAuthModal({ isOpen: true, mode });
+      useAuthStore.getState().openPricing();
     }
   };
 
+  const handleModeClick = (modeId: string) => {
+    const user = useAuthStore.getState().user;
+    if (user) {
+      navigate(`/app?mode=${modeId}`);
+    } else {
+      useAuthStore.getState().openPricing();
+    }
+  };
+
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newsletterEmail) return;
+    setNewsletterLoading(true);
+    try {
+      await fetch('/api/newsletter/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: newsletterEmail }),
+      });
+      setNewsletterSuccess(true);
+      setNewsletterEmail('');
+    } catch {}
+    setNewsletterLoading(false);
+  };
+
   return (
-    <div className="min-h-screen bg-[#020202] pb-40 selection:bg-accent/30 selection:text-accent">
-      <div className="mesh-bg" />
-      
-      {/* ── Navigation ── */}
-      <nav className={`fixed top-0 left-0 w-full z-[80] transition-all duration-500 border-b ${
-        scrolled ? 'bg-black/60 backdrop-blur-2xl border-default py-4' : 'bg-transparent border-transparent py-8'
-      }`}>
-        <div className="max-w-7xl mx-auto px-10 flex items-center justify-between">
-          <div className="flex items-center gap-4 select-none cursor-pointer group" onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})}>
-             <div className="w-10 h-10 bg-accent rounded-xl flex items-center justify-center text-black font-black text-xl shadow-lg shadow-accent/20 transition-transform group-hover:scale-110">H</div>
-             <span className="font-black text-2xl text-primary tracking-tighter uppercase italic">HarvestAI</span>
-          </div>
-          
-          <div className="hidden md:flex items-center gap-12">
-            <NavLink to="/pricing" className="text-[11px] font-black uppercase tracking-widest text-secondary hover:text-accent transition-colors">Pricing</NavLink>
-            <a href="https://github.com/truewebsolutions/harvestai/wiki" target="_blank" className="text-[11px] font-black uppercase tracking-widest text-secondary hover:text-accent transition-colors">Docs</a>
-            {user ? (
+    <div className="landing">
+      <div className="ambient-grid" aria-hidden />
+      <div className="ambient-glow" aria-hidden />
+
+      <Navbar />
+
+      {/* HERO */}
+      <div className="hero-wrap">
+        <div className="hero-grid">
+          {/* Left */}
+          <div>
+            <div className="hero-pill">
+              <span className="hero-pill-dot" />
+              AI-powered · No code needed · Export instantly
+            </div>
+            <h1 className="hero-h1">
+              Harvest <em>{txt}<span className="hero-cursor" /></em>
+              <br />from anywhere.
+            </h1>
+            <p className="hero-sub">
+              Find business leads from Nigerian directories and global sources. Extract structured data from any website. Just describe what you want — AI does the rest.
+            </p>
+            <div className="hero-actions">
               <button 
-                onClick={() => navigate('/app')}
-                className="btn btn-primary px-8 py-3 bg-white text-black shadow-white/10"
+                className="btn btn-primary btn-xl"
+                onClick={handleStartFree}
               >
-                Launch Console →
+                {user ? 'Go to Harvest' : 'Start harvesting free'}
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
               </button>
-            ) : (
-              <div className="flex items-center gap-8">
-                <button 
-                  onClick={() => openAuth('login')}
-                  className="text-[11px] font-black uppercase tracking-widest text-secondary hover:text-primary transition-colors"
-                >
-                  Ident Interface
-                </button>
-                <button 
-                  onClick={() => openAuth('signup')}
-                  className="btn btn-primary px-8 py-3"
-                >
-                  Free Harvest →
-                </button>
+              <Link to="/pricing" className="btn btn-secondary btn-md">See pricing</Link>
+              <a
+                href="https://chrome.google.com/webstore"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-secondary btn-md"
+                style={{ opacity: 0.75 }}
+              >
+                🧩 Chrome Extension ✦
+              </a>
+            </div>
+            <div className="hero-stats">
+              <div>
+                <span className="hero-stat-v">30<span className="a">+</span></span>
+                <span className="hero-stat-l">Free credits/month</span>
               </div>
-            )}
-          </div>
-        </div>
-      </nav>
-
-      {/* ── Hero Section ── */}
-      <section className="relative pt-60 pb-40 px-10 overflow-hidden">
-        <div className="max-w-7xl mx-auto text-center">
-          <div className="hero-badge mx-auto mb-10 animate-fade-in backdrop-blur-xl bg-white/[0.03] border-white/10">
-            <span className="w-1 h-1 rounded-full bg-accent animate-pulse" />
-            AI-powered Industrial Scraping engine
-          </div>
-          
-          <h1 className="text-7xl md:text-[6.5rem] font-black text-primary leading-[0.95] tracking-tighter mb-10 animate-slide-up">
-            Harvest <br className="md:hidden" />
-            <span className="text-accent inline-block min-w-[280px] transition-all duration-700 hover:rotate-[-2deg]">
-              {rotatingText}
-            </span>
-          </h1>
-          
-          <p className="text-xl md:text-2xl text-secondary max-w-3xl mx-auto mb-16 font-medium animate-fade-in delay-200">
-            Deploy advanced AI scrapers to hunt through thousands of digital sources. Describe your target, and our engine extracts clean, orchestrated data.
-          </p>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 animate-slide-up delay-400">
-            <button onClick={() => openAuth('signup')} className="btn btn-primary px-12 py-5 text-lg shadow-accent/40">Initialize System →</button>
-            <button onClick={() => navigate('/pricing')} className="btn btn-secondary px-12 py-5 text-lg">View Data Tiers</button>
-          </div>
-        </div>
-
-        {/* ── Elevated Mockup ── */}
-        <div className="max-w-6xl mx-auto mt-32 relative p-1.5 bento-card border-white/5 bg-white/[0.02] backdrop-blur-sm animate-scale-in delay-600">
-           <div className="absolute -top-20 -right-20 w-64 h-64 bg-accent/10 rounded-full blur-[120px] pointer-events-none" />
-           <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-accent/10 rounded-full blur-[120px] pointer-events-none" />
-           
-           <div className="rounded-[20px] overflow-hidden shadow-2xl border border-white/10 bg-black">
-              <div className="bg-white/[0.03] border-b border-white/5 p-4 flex items-center justify-between">
-                 <div className="flex gap-2">
-                    <div className="w-3 h-3 rounded-full bg-red-500/10 border border-red-500/20" />
-                    <div className="w-3 h-3 rounded-full bg-yellow-500/10 border border-yellow-500/20" />
-                    <div className="w-3 h-3 rounded-full bg-green-500/10 border border-green-500/20" />
-                 </div>
-                 <div className="bg-neutral-900/50 border border-white/5 rounded-lg px-4 py-1.5 text-[10px] text-muted font-black tracking-widest uppercase italic">https://app.harvestai.io / console</div>
-                 <div className="w-10 h-0.5 bg-white/5 rounded-full" />
+              <div className="hero-stat-div" />
+              <div>
+                <span className="hero-stat-v">8</span>
+                <span className="hero-stat-l">Harvest modes</span>
               </div>
-              <div className="p-12 h-[500px] bg-black relative flex flex-col justify-center items-center">
-                 <div className="w-full max-w-3xl space-y-8 animate-pulse-slow">
-                    <div className="h-4 w-1/4 bg-white/5 rounded-full" />
-                    <div className="grid grid-cols-12 gap-6">
-                        <div className="col-span-12 h-32 bg-white/[0.03] border border-white/5 rounded-2xl" />
-                        <div className="col-span-4 h-24 bg-white/[0.02] border border-white/5 rounded-2xl" />
-                        <div className="col-span-8 h-24 bg-white/[0.02] border border-white/5 rounded-2xl" />
+              <div className="hero-stat-div" />
+              <div>
+                <span className="hero-stat-v">4<span className="a"> fmts</span></span>
+                <span className="hero-stat-l">Export formats</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Right — demo card */}
+          <div className="demo-wrap">
+            <div className="demo-card">
+              <div className="demo-header">
+                <span className="demo-mode">Lead Finder</span>
+                <div className="demo-live">
+                  <span className="demo-live-dot" />
+                  RUNNING
+                </div>
+              </div>
+              <div className="demo-inputs">
+                <div className="demo-row">
+                  <span className="demo-key">Business type</span>
+                  <span className="demo-val">Law firms</span>
+                </div>
+                <div className="demo-row">
+                  <span className="demo-key">Location</span>
+                  <span className="demo-val">Lagos, Nigeria</span>
+                </div>
+              </div>
+              <div className="demo-prog-wrap">
+                <div className="demo-prog-label">
+                  <span className="demo-prog-dot" />
+                  Scraping VConnect Nigeria…
+                </div>
+                <div className="progress">
+                  <div className="progress-bar" style={{ width: '68%' }} />
+                </div>
+              </div>
+              <div className="demo-results">
+                {[
+                  { name: 'Okonkwo & Associates',  contact: 'info@okonkwolaw.com', score: '9.2' },
+                  { name: 'Lagos Legal Partners',  contact: '08012345678',         score: '8.7' },
+                  { name: 'Adetokunbo Chambers',   contact: 'contact@adc.ng',      score: '8.1' },
+                ].map(r => (
+                  <div key={r.name} className="demo-result">
+                    <div>
+                      <div className="demo-result-name">{r.name}</div>
+                      <div className="demo-result-contact">{r.contact}</div>
                     </div>
-                 </div>
-                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
+                    <span className="demo-result-score">{r.score}</span>
+                  </div>
+                ))}
+                <div className="demo-more">+ 22 more results found</div>
               </div>
-           </div>
+            </div>
+            <div className="demo-float demo-float-1">✓ 25 leads harvested</div>
+            <div className="demo-float demo-float-2">⚡ 3 credits used</div>
+          </div>
         </div>
-      </section>
+      </div>
 
-      {/* ── Feature Bento Grid ── */}
-      <section className="py-20 px-10">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bento-card col-span-1 md:col-span-2 group">
-              <span className="section-label">Targeting System</span>
-              <div className="text-4xl mb-6 group-hover:scale-110 group-hover:rotate-[5deg] transition-all duration-500 origin-left">🎯</div>
-              <h3 className="text-3xl font-black text-primary mb-4 italic">Precision Harvesting</h3>
-              <p className="text-secondary text-base leading-relaxed max-w-xl">Hunt through directory layers to return scored, high-value leads. Full contact vector extraction with confidence scoring included.</p>
+      {/* STATS BELT */}
+      <div className="stats-belt">
+        <div className="stats-belt-inner">
+          {[
+            { v: '17,400', s: '+', l: 'Free AI calls/day' },
+            { v: '8',      s: '',  l: 'Harvest modes' },
+            { v: '20',     s: '',  l: 'URLs per job' },
+            { v: '100',    s: '%', l: 'Export free always' },
+          ].map(s => (
+            <div key={s.l}>
+              <div className="stat-val">{s.v}<span className="a">{s.s}</span></div>
+              <div className="stat-lab">{s.l}</div>
             </div>
-            
-            <div className="bento-card group">
-              <span className="section-label">Engine Core</span>
-              <div className="text-4xl mb-6 group-hover:-translate-y-2 transition-transform">🧠</div>
-              <h3 className="text-3xl font-black text-primary mb-4 italic">Natural Intelligence</h3>
-              <p className="text-secondary text-base leading-relaxed">Describe your extraction payload in plain English. No more selectors, just raw intent.</p>
-            </div>
-            
-            <div className="bento-card group border-accent/10">
-              <span className="section-label text-accent">Data Logistics</span>
-              <div className="text-4xl mb-6 group-hover:translate-x-2 transition-transform">🚀</div>
-              <h3 className="text-3xl font-black text-primary mb-4 italic">Instant Export</h3>
-              <p className="text-secondary text-base leading-relaxed">Download clean CSV datasets in one click. Production-ready data in seconds, not hours.</p>
-            </div>
+          ))}
+        </div>
+      </div>
 
-            <div className="bento-card col-span-1 md:col-span-2 group overflow-hidden bg-accent/[0.01]">
-               <span className="section-label">Scalability</span>
-               <h3 className="text-3xl font-black text-primary mb-4 italic">Built-in Multi-Region Clusters</h3>
-               <p className="text-secondary text-base leading-relaxed">Every lead is automatically scored by our ranking engine based on completeness and data freshness across 12 global regions.</p>
-               <div className="mt-12 flex gap-4 opacity-10 group-hover:opacity-30 transition-all duration-1000 grayscale group-hover:grayscale-0">
-                  {[1,2,3,4,5,6].map(i => (
-                    <div key={i} className="min-w-[140px] h-24 bg-accent/20 border border-accent/30 rounded-2xl flex items-center justify-center font-black text-accent italic">REGION_{i}</div>
-                  ))}
-               </div>
-            </div>
+      {/* MODES — clickable grid of all 8 */}
+      <section className="section">
+        <div className="section-inner">
+          <div className="eyebrow">Eight modes</div>
+          <h2 className="section-h">One tool. Infinite data.</h2>
+          <p className="section-p">From lead generation to price monitoring to data enrichment — HarvestAI handles it all.</p>
+          <div className="mode-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
+            {HARVEST_MODES.map(m => (
+              <div
+                key={m.id}
+                className="mode-card"
+                style={{ cursor: 'pointer', position: 'relative' }}
+                onClick={() => handleModeClick(m.id)}
+              >
+                {m.badge && (
+                  <span style={{
+                    position: 'absolute', top: 12, right: 12,
+                    fontSize: 9, fontWeight: 800, color: 'var(--amber)',
+                    background: 'rgba(245,166,35,0.15)', padding: '2px 6px',
+                    borderRadius: 3, textTransform: 'uppercase', letterSpacing: '0.06em',
+                  }}>{m.badge}</span>
+                )}
+                <span className="mode-icon">{m.icon}</span>
+                <div className="mode-title">{m.label}</div>
+                <p className="mode-desc">{m.desc}</p>
+                <div style={{ fontSize: 11, color: 'var(--text-3)', fontFamily: 'var(--font-m)', marginTop: 8 }}>
+                  {m.creditNote}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ── Auth Modal ── */}
-      <AuthModal 
-        isOpen={authModal.isOpen} 
-        onClose={() => setAuthModal({...authModal, isOpen: false})} 
-        initialMode={authModal.mode} 
-      />
+      {/* STEPS */}
+      <section className="section section-alt">
+        <div className="section-inner">
+          <div className="eyebrow">How it works</div>
+          <h2 className="section-h">Three steps to clean data.</h2>
+          <div className="steps-row">
+            {[
+              { n: '01', t: 'Describe your target', d: 'Pick a mode. Enter a business type and location, paste URLs, or upload a CSV.' },
+              { n: '02', t: 'AI scrapes and extracts', d: 'HarvestAI fetches the pages and uses Gemini AI to pull exactly what you asked for.' },
+              { n: '03', t: 'Export and use', d: 'Download as CSV, Excel, JSON, or Markdown table and import into your CRM or spreadsheet.' },
+            ].map((s, i) => (
+              <div key={s.n} className="step">
+                <span className="step-n">{s.n}</span>
+                <div className="step-title">{s.t}</div>
+                <p className="step-desc">{s.d}</p>
+                {i < 2 && <div className="step-arrow">→</div>}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <div className="cta-section">
+        <div className="cta-h">Stop copying data manually.</div>
+        <p className="cta-sub">
+          {user 
+            ? "HarvestAI does it in seconds. Describe what you want and the AI extracts it instantly."
+            : "HarvestAI does it in seconds. 30 free credits every month — no card needed."}
+        </p>
+        <button 
+          className="btn btn-primary btn-xl"
+          onClick={handleStartFree}
+        >
+          {user ? 'Go to Harvest →' : 'Start harvesting for free →'}
+        </button>
+      </div>
+
+      {/* ── Newsletter + ReplyAI Promo ── */}
+      <div className="newsletter-split">
+        <div className="newsletter-panel">
+          <p className="newsletter-eyebrow">📬 FREE NEWSLETTER</p>
+          <h2 className="newsletter-headline">Level up your data game</h2>
+          <p className="newsletter-sub">
+            Join 2,000+ Nigerian professionals getting weekly tips on AI tools, web intelligence, and exclusive HarvestAI updates.
+          </p>
+          <form className="newsletter-form" onSubmit={handleNewsletterSubmit}>
+            <input
+              type="email"
+              className="newsletter-input"
+              placeholder="your@email.com"
+              value={newsletterEmail}
+              onChange={e => setNewsletterEmail(e.target.value)}
+              required
+            />
+            <button type="submit" className="newsletter-btn" disabled={newsletterLoading}>
+              {newsletterLoading ? 'Subscribing...' : 'Subscribe free →'}
+            </button>
+          </form>
+          {newsletterSuccess && <p className="newsletter-success">🎉 You're on the list!</p>}
+          <p className="newsletter-fine">No spam. Unsubscribe anytime.</p>
+        </div>
+
+        <div className="harvest-promo-card" style={{background: 'linear-gradient(135deg, #1a0800 0%, #3d2000 50%, #1a0800 100%)', border: '1px solid rgba(245,158,11,0.4)'}}>
+          <p className="harvest-promo-eyebrow" style={{color: '#f59e0b'}}>POWERED BY TRUEWEB NETWORK</p>
+          <div className="harvest-promo-icon">✉️</div>
+          <h3 className="harvest-promo-title">Supercharge with <span style={{color: '#f59e0b'}}>ReplyAI</span></h3>
+          <p className="harvest-promo-desc">
+            Write perfect professional email replies in seconds. AI-powered, built for Nigerian inboxes.
+          </p>
+          <a href="https://replyai.com.ng" target="_blank" rel="noopener noreferrer" className="harvest-promo-btn" style={{background: 'linear-gradient(135deg, #f59e0b, #fbbf24)', color: '#000'}}>
+            Try ReplyAI free →
+          </a>
+        </div>
+      </div>
     </div>
   );
 }

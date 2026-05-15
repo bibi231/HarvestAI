@@ -1,0 +1,8 @@
+﻿src/components/AuthModal.tsx(8,29): error TS2339: Property 'signInWithEmail' does not exist on type '{ user: User | null; credits: CreditsInfo | null; isAuthLoading: boolean; signIn: (email: string, password: string) => Promise<UserCredential>; signUp: (email: string, password: string) => Promise<...>; signInWithGoogle: () => Promise<...>; signOut: () => Promise<...>; }'.
+src/components/AuthModal.tsx(8,46): error TS2339: Property 'signUpWithEmail' does not exist on type '{ user: User | null; credits: CreditsInfo | null; isAuthLoading: boolean; signIn: (email: string, password: string) => Promise<UserCredential>; signUp: (email: string, password: string) => Promise<...>; signInWithGoogle: () => Promise<...>; signOut: () => Promise<...>; }'.
+src/components/ResultsTable.tsx(5,11): error TS2339: Property 'results' does not exist on type 'HarvestStore'.
+src/components/ResultsTable.tsx(65,37): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/components/ResultsTable.tsx(65,40): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/pages/Dashboard.tsx(37,77): error TS2353: Object literal may only specify known properties, and 'prompt' does not exist in type 'ExtractInput'.
+src/pages/Dashboard.tsx(252,25): error TS2322: Type 'LogEntry' is not assignable to type 'ReactNode'.
+src/pages/Home.tsx(10,13): error TS2554: Expected 1 arguments, but got 0.

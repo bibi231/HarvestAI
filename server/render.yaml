@@ -2,8 +2,16 @@ services:
   - type: web
     name: harvestai-api
     env: node
-    buildCommand: npm install && npx playwright install chromium && npm run build
+    region: oregon
+    plan: starter
+    healthCheckPath: /api/health
+    buildCommand: npm install && npx playwright install-deps chromium && npx playwright install chromium && npm run build
     startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
+      - key: CLIENT_URL
+        value: https://harvestai.com.ng
+      # All other secrets (DATABASE_URL, GEMINI_API_KEY, GROQ_API_KEY,
+      # FIREBASE_SERVICE_ACCOUNT_JSON, FLW_*, PAYSTACK_*, SERPAPI_KEY,
+      # SMTP_*) must be set in the Render dashboard. Do NOT commit them here.

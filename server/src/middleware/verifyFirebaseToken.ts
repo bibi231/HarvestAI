@@ -1,45 +1,75 @@
-import { Request, Response, NextFunction } from 'express';
 import admin from 'firebase-admin';
+import type { Request, Response, NextFunction } from 'express';
+import fs from 'fs';
+import { db } from '../db/index.js';
+import { users } from '../db/schema.js';
+import { eq } from 'drizzle-orm';
 
 if (!admin.apps.length) {
-    try {
-        if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
-            let raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON.trim();
-            const serviceAccount = JSON.parse(raw);
-            if (serviceAccount.private_key) {
-                serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
-            }
-            admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
-            console.log('[Firebase] Admin initialized successfully');
-        } else {
-            console.error('[Firebase] FIREBASE_SERVICE_ACCOUNT_JSON is not set — auth will fail');
-        }
-    } catch (error) {
-        console.error('[Firebase] Failed to initialize admin SDK:', error);
+  let credential;
+
+  // 1. Prioritize individual separated env variables (Best for Render/Vercel)
+  if (process.env.FIREBASE_PRIVATE_KEY && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PROJECT_ID) {
+    credential = admin.credential.cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      // Replace literal '\n' characters with actual newlines for PEM parsing
+      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+    });
+  }
+  // 2. Full JSON string (FIREBASE_SERVICE_ACCOUNT_JSON is the canonical name)
+  else if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON || process.env.FIREBASE_SERVICE_ACCOUNT) {
+    const json = process.env.FIREBASE_SERVICE_ACCOUNT_JSON || process.env.FIREBASE_SERVICE_ACCOUNT!;
+    credential = admin.credential.cert(JSON.parse(json));
+  }
+  // 3. Last-resort local file (NEVER commit this — gitignored).
+  else {
+    const candidate = new URL('../../firebase-service-account.json', import.meta.url);
+    let fileExists = false;
+    try { fs.accessSync(candidate); fileExists = true; } catch { /* missing */ }
+    if (!fileExists) {
+      throw new Error('Firebase credentials missing. Set FIREBASE_SERVICE_ACCOUNT_JSON env var.');
     }
+    const data = fs.readFileSync(candidate, 'utf-8');
+    credential = admin.credential.cert(JSON.parse(data));
+  }
+
+  admin.initializeApp({ credential });
 }
 
 declare global {
-    namespace Express {
-        interface Request {
-            user?: admin.auth.DecodedIdToken;
-        }
+  namespace Express {
+    interface Request {
+      user?: admin.auth.DecodedIdToken | {
+        uid: string;
+        email: string;
+        name?: string;
+        picture?: string;
+      };
     }
+  }
 }
 
-export async function verifyFirebaseToken(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        res.status(401).json({ error: 'UNAUTHORIZED', message: 'No token provided' });
-        return;
-    }
+export async function verifyFirebaseToken(req: Request, res: Response, next: NextFunction) {
+  const header = req.headers.authorization;
+  const token = header?.split(' ')[1] ?? (req.query.token as string);
 
-    const token = authHeader.split('Bearer ')[1];
-    try {
-        const decodedToken = await admin.auth().verifyIdToken(token);
-        req.user = decodedToken;
-        next();
-    } catch (err) {
-        res.status(401).json({ error: 'UNAUTHORIZED', message: 'Invalid token' });
-    }
+  if (!token) {
+    return res.status(401).json({ error: 'UNAUTHORIZED', message: 'Missing auth token' });
+  }
+
+  // Check if it's an API key
+  if (token.startsWith('hai_')) {
+    const [user] = await db.select().from(users).where(eq(users.apiKey, token)).limit(1);
+    if (!user) return res.status(401).json({ error: 'UNAUTHORIZED', message: 'Invalid API key' });
+    req.user = { uid: user.id, email: user.email!, name: undefined, picture: undefined };
+    return next();
+  }
+
+  try {
+    req.user = await admin.auth().verifyIdToken(token);
+    next();
+  } catch {
+    res.status(401).json({ error: 'UNAUTHORIZED', message: 'Invalid or expired token' });
+  }
 }

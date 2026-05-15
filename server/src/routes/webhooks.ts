@@ -1,75 +1,68 @@
 import { Router, Request, Response } from 'express';
 import { db } from '../db/index.js';
-import { users, payments } from '../db/schema.js';
+import { users } from '../db/schema.js';
 import { eq, sql } from 'drizzle-orm';
 import crypto from 'crypto';
 
 const router = Router();
 
-// ── FLUTTERWAVE WEBHOOK ──
-// Securely get the hash to verify that the request is genuinely from Flutterwave
-const FLW_SECRET_HASH = process.env.FLW_SECRET_HASH || 'harvestai_v3_secure_hash';
+// Credit pack mapping
+const PACK_CREDITS: Record<string, number> = {
+  starter: 100,
+  pro: 300,
+  power: 1000,
+};
 
-/**
- * Flutterwave Webhook Handler
- * POST /api/webhooks/flutterwave
- */
-router.post('/flutterwave', async (req: Request, res: Response) => {
+// Derive pack from NGN amount
+function packFromAmount(amountNGN: number): { pack: string; credits: number } {
+  if (amountNGN >= 15000) return { pack: 'power', credits: 1000 };
+  if (amountNGN >= 5000) return { pack: 'pro', credits: 300 };
+  return { pack: 'starter', credits: 100 };
+}
+
+// ── GTSquad webhook ───────────────────────────────────────────────────────────
+router.post('/gtsquad', async (req: Request, res: Response) => {
   try {
-    const signature = req.headers['verif-hash'];
+    const signature = req.headers['x-gtsquad-signature'] as string;
+    const secret = process.env.GTSQUAD_SECRET_KEY || '';
+    const rawBody = (req as any).rawBody instanceof Buffer
+      ? (req as any).rawBody
+      : Buffer.from(JSON.stringify(req.body));
+    const expected = crypto.createHmac('sha256', secret).update(rawBody).digest('hex');
 
-    if (!signature || signature !== FLW_SECRET_HASH) {
-      // Unauthenticated request
-      return res.status(401).send();
+    if (!signature || signature !== expected) {
+      console.warn('GTSquad: invalid signature');
+      return res.status(401).send('Invalid signature');
     }
 
-    const payload = req.body;
-    const { status, tx_ref, amount, currency, id: transactionId } = payload.data;
+    const event = JSON.parse(rawBody.toString());
 
-    if (status === 'successful') {
-      // 1. Find the user ID from our initial initialization
-      const paymentRecord = (await db.select().from(payments).where(eq(payments.id, tx_ref)).limit(1))[0];
-      
-      if (paymentRecord && paymentRecord.status !== 'completed') {
-        const creditsToAdding = parseInt(paymentRecord.metadata?.planId === 'power' ? '500' : '100');
+    if (event.Event === 'payment.completed' && event.Body?.transaction_status === 'success') {
+      const { customer_email, transaction_ref } = event.Body;
+      const packName = (event.Body.meta_data?.pack as string) || 'starter';
+      const credits = PACK_CREDITS[packName] ?? 100;
 
-        // 2. Perform Atomic Transaction to ensure credits are only added once
-        await db.transaction(async (tx) => {
-          await tx.update(payments).set({ 
-            status: 'completed', 
-            metadata: { ...paymentRecord.metadata, flw_id: transactionId }
-          }).where(eq(payments.id, tx_ref));
-
-          await tx.update(users).set({ 
-            credits: sql`${users.credits} + ${creditsToAdding}` 
-          }).where(eq(users.id, paymentRecord.userId));
-        });
-
-        console.log(`[Webhook] Success: Added ${creditsToAdding} credits to user ${paymentRecord.userId}`);
+      const [user] = await db.select().from(users).where(eq(users.email, customer_email));
+      if (!user) {
+        console.warn(`GTSquad: user not found for ${customer_email}`);
+        return res.status(200).send('User not found, ignoring');
       }
+
+      await db.update(users)
+        .set({ paidCredits: sql`${users.paidCredits} + ${credits}` })
+        .where(eq(users.id, user.id));
+
+      console.log(`GTSquad: added ${credits} credits to ${customer_email} (ref: ${transaction_ref})`);
     }
 
-    res.status(200).send();
-  } catch (error: any) {
-    console.error('Webhook Error:', error);
-    res.status(500).send();
+    return res.status(200).send('OK');
+  } catch (err) {
+    console.error('GTSquad webhook error', err);
+    return res.status(500).send('Internal error');
   }
 });
 
-/**
- * Paystack Webhook Handler (Secondary)
- * POST /api/webhooks/paystack
- */
-router.post('/paystack', async (req: Request, res: Response) => {
-  const hash = crypto.createHmac('sha512', process.env.PAYSTACK_SECRET_KEY!).update(JSON.stringify(req.body)).digest('hex');
-  if (hash === req.headers['x-paystack-signature']) {
-    const event = req.body;
-    if (event.event === 'charge.success') {
-      const { reference, customer } = event.data;
-      // Logical check for Paystack reference same as Flutterwave logic...
-    }
-  }
-  res.status(200).send();
-});
-
-export default router;
+// ── Monnify webhook ───────────────────────────────────────────────────────────
+router.post('/monnify', async (req: Request, res: Response) => {
+  try {
+    const signature = req.headers['monnify-signature']

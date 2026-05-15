@@ -1,14 +1,12 @@
 {
   "name": "HarvestAI",
   "short_name": "HarvestAI",
-  "description": "AI-powered web scraping and lead generation tool",
+  "description": "AI-powered web data extraction and lead generation",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#07080f",
-  "theme_color": "#f59e0b",
-  "lang": "en",
-  "categories": ["productivity", "business"],
+  "background_color": "#07070c",
+  "theme_color": "#f5a623",
   "icons": [
-    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
   ]
 }

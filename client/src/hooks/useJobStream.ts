@@ -11,7 +11,7 @@ export function useJobStream(jobId: string | null) {
     if (!jobId) return;
 
     setJob(null);
-    setIsDone(false);
+    setIsDone(false); // Reset for new jobId
 
     let active = true;
 
