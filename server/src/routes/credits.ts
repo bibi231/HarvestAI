@@ -135,60 +135,43 @@ router.get('/history', verifyFirebaseToken, async (req: any, res: any) => {
 });
 
 // ── Pack catalog ────────────────────────────────────────────────────────────
-// NGN amounts in kobo. USD amounts in cents.
 const PACKS: Record<string, { credits: number; ngnKobo: number; usdCents: number; name: string }> = {
-  starter: { credits: 100,  ngnKobo: 250000,  usdCents: 800,  name: 'Starter (100 credits)' },
-  pro:     { credits: 300,  ngnKobo: 600000,  usdCents: 2000, name: 'Pro (300 credits)' },
-  power:   { credits: 1000, ngnKobo: 1500000, usdCents: 5000, name: 'Power (1000 credits)' },
+  starter: { credits: 100,  ngnKobo: 250000,  usdCents: 800,  name: 'Starter' },
+  pro:     { credits: 300,  ngnKobo: 600000,  usdCents: 2000, name: 'Pro' },
+  power:   { credits: 1000, ngnKobo: 1500000, usdCents: 5000, name: 'Power' },
 };
-const SQUAD_BASE = process.env.SQUAD_API_BASE || 'https://api-d.squadco.com';
-const CLIENT_URL = process.env.CLIENT_URL || 'https://harvestai.com.ng';
 
-// ── Squad NGN checkout — transaction-init API (reusable, fresh URL per user) ─
+// ── Squad inline checkout (no redirect — popup on site) ─────────────────────
 router.post('/gtsquad-checkout', verifyFirebaseToken, async (req: any, res: any) => {
   try {
-    const { packId } = req.body;
+    const { packId, currency = 'NGN' } = req.body;
     const email: string = (req as any).user!.email || '';
     const userId: string = (req as any).user!.uid || '';
     const pack = PACKS[packId as string];
     if (!pack)  return res.status(400).json({ message: 'Invalid pack' });
     if (!email) return res.status(400).json({ message: 'No email on user' });
 
-    const secretKey = process.env.GTSQUAD_SECRET_KEY || process.env.SQUAD_SECRET_KEY;
-    if (!secretKey) return res.status(500).json({ message: 'Squad not configured (missing GTSQUAD_SECRET_KEY)' });
+    const publicKey = process.env.GTSQUAD_PUBLIC_KEY || process.env.SQUAD_PUBLIC_KEY;
+    if (!publicKey) return res.status(500).json({ message: 'Squad not configured (set GTSQUAD_PUBLIC_KEY)' });
 
+    const cur = String(currency).toUpperCase() === 'USD' ? 'USD' : 'NGN';
+    const amount = cur === 'USD' ? pack.usdCents : pack.ngnKobo;
     const txRef = `harvestai_${userId.slice(0, 10)}_${Date.now()}`;
-    const r = await fetch(`${SQUAD_BASE}/transaction/initiate`, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${secretKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        amount: pack.ngnKobo,
-        email,
-        currency: 'NGN',
-        initiate_type: 'inline',
-        transaction_ref: txRef,
-        callback_url: `${CLIENT_URL}/app?paid=1`,
-        customer_name: (req as any).user!.name || email,
-        metadata: { pack: packId, userId, credits: pack.credits },
-      }),
+
+    return res.json({
+      mode: 'inline',
+      publicKey,
+      transactionRef: txRef,
+      amount,
+      currency: cur,
+      email,
+      customerName: (req as any).user!.name || email,
+      metadata: { pack: packId, userId, credits: pack.credits },
     });
-    const j: any = await r.json().catch(() => ({}));
-    const checkoutUrl = j?.data?.checkout_url;
-    if (!r.ok || !checkoutUrl) return res.status(502).json({ message: j?.message || 'Squad init failed' });
-    return res.json({ checkoutUrl, reference: txRef });
   } catch (err) { res.status(500).json({ message: 'Checkout failed' }); }
 });
 
-// ── Monnify checkout (KYC pending) — temporarily uses Squad ──────────────────
-router.post('/monnify-checkout', verifyFirebaseToken, async (req: any, res: any) => {
-  // Until Monnify KYC is approved, route through Squad (same as gtsquad-checkout)
-  (req as any).body = req.body;
-  return (router as any).handle({ ...req, url: '/gtsquad-checkout', method: 'POST' }, res);
-});
-
-// ── Lemon Squeezy USD checkout — pre-built variant URLs from env ─────────────
-// Create products at app.lemonsqueezy.com → Products. Copy each "Buy now"
-// share URL into env vars: LS_URL_STARTER, LS_URL_PRO, LS_URL_POWER.
+// ── LemonSqueezy USD checkout — overlay URL ──────────────────────────────────
 const LS_URLS: Record<string, string | undefined> = {
   starter: process.env.LS_URL_STARTER,
   pro:     process.env.LS_URL_PRO,
@@ -203,13 +186,13 @@ router.post('/lemonsqueezy-checkout', verifyFirebaseToken, async (req: any, res:
     const pack = PACKS[packId as string];
     const baseUrl = LS_URLS[packId as string];
     if (!pack)    return res.status(400).json({ message: 'Invalid pack' });
-    if (!baseUrl) return res.status(500).json({ message: `LemonSqueezy URL not configured for pack=${packId}. Set LS_URL_${packId.toUpperCase()} in env.` });
+    if (!baseUrl) return res.status(503).json({ message: `LemonSqueezy URL not configured (set LS_URL_${packId.toUpperCase()})` });
 
     const url = new URL(baseUrl);
     if (email)  url.searchParams.set('checkout[email]', email);
     url.searchParams.set('checkout[custom][userId]', userId);
     url.searchParams.set('checkout[custom][pack]',   packId);
-    return res.json({ checkoutUrl: url.toString() });
+    return res.json({ mode: 'overlay', checkoutUrl: url.toString() });
   } catch (err) { res.status(500).json({ message: 'Checkout failed' }); }
 });
 
