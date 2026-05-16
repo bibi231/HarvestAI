@@ -98,7 +98,7 @@ export async function deductCredits(userId: string, amount: number): Promise<{
 export async function addPaidCredits(
   userId: string,
   credits: number,
-  provider: 'paystack' | 'stripe',
+  provider: 'paystack' | 'stripe' | 'squad' | 'monnify' | 'lemonsqueezy' | string,
   externalRef: string,
   pack: string,
   amountMinor: number,

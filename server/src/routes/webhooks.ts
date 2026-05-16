@@ -8,26 +8,36 @@ import { addPaidCredits } from '../services/creditsService.js';
 const router = Router();
 
 // ── GTSquad Webhook ───────────────────────────────────────────────────────────
+// Docs: https://docs.squadco.com — header is x-squad-encrypted-body,
+// algorithm is HMAC-SHA512, hex output uppercased.
 router.post('/gtsquad', async (req: Request, res: Response) => {
     try {
         const secret = process.env.GTSQUAD_SECRET_KEY || '';
         const rawBody = JSON.stringify(req.body);
         const expected = crypto
-            .createHmac('sha256', secret)
+            .createHmac('sha512', secret)
             .update(rawBody)
-            .digest('hex');
-        const received = (req.headers['x-squad-signature'] || '') as string;
+            .digest('hex')
+            .toUpperCase();
+        const received = ((req.headers['x-squad-encrypted-body'] || '') as string).toUpperCase();
         
         if (!secret || received !== expected) {
             console.warn('[Squad Webhook] Invalid signature');
             return res.status(401).send('Invalid signature');
         }
 
-        const { event, data } = req.body;
-        if (event === 'payment.completed' && data?.status === 'success') {
-            const reference = data.reference;
-            const packId    = data.metadata?.packId as string | undefined;
-            const email     = data.customer?.email as string | undefined;
+        // Squad wraps the payload in { Event, Body }
+        const event = req.body.Event || req.body.event;
+        const data = req.body.Body || req.body.data || req.body;
+
+        if (
+            (event === 'charge_successful' || event === 'payment.completed') &&
+            (data?.gateway_response === 'Successful' || data?.status === 'success' || data?.transaction_status === 'success')
+        ) {
+            const reference = data.transaction_ref || data.reference;
+            const meta = data.meta || data.metadata || {};
+            const packId = meta.pack || meta.packId;
+            const email = data.email || data.customer_email || data.customer?.email;
 
             if (!reference || !packId || !email) {
                 console.warn('[Squad Webhook] Missing reference/packId/email');
