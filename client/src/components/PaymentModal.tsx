@@ -49,26 +49,16 @@ export function PaymentModal({ plan, onClose, currency: initialCurrency }: Payme
         return;
       }
 
-      // Default: Squad inline popup
+      // GTSquad API Link
       const { data } = await api.post('/api/credits/gtsquad-checkout', { packId: plan.id, currency });
-      if (!window.Squad) {
-        setStatus('error');
-        setErrorMsg('Payment widget failed to load. Please refresh the page.');
+      
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
         return;
       }
-      const squad = new window.Squad({
-        key: data.publicKey,
-        email: data.email,
-        amount: data.amount,
-        currency_code: data.currency,
-        transaction_ref: data.transactionRef,
-        customer_name: data.customerName,
-        metadata: data.metadata,
-        onClose: () => setStatus('idle'),
-        onSuccess: () => { reloadCredits(); },
-      });
-      squad.setup();
-      squad.open();
+
+      setStatus('error');
+      setErrorMsg('Failed to generate checkout link.');
     } catch (err: any) {
       setStatus('error');
       setErrorMsg(err?.response?.data?.message || 'Could not start checkout. Please try again.');
