@@ -121,6 +121,58 @@
 }
 @keyframes hai-status-pulse { 0%,100% { opacity:1; } 50% { opacity:.5; } }
 
+/* Newsletter inline block */
+.hai-footer-nl {
+  display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+  padding: 22px 24px;
+  background: rgba(255,255,255,.025);
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 14px;
+  margin-bottom: 32px;
+}
+.hai-footer-nl-copy { flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 4px; }
+.hai-footer-nl-eyebrow {
+  font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
+  color: #f5a623; font-weight: 700;
+}
+.hai-footer-nl-text { font-size: 13px; color: #8b91a3; line-height: 1.5; }
+.hai-footer-nl-form { display: flex; gap: 8px; flex-shrink: 0; }
+.hai-footer-nl-input {
+  width: 220px; padding: 10px 14px; font-size: 13.5px;
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1);
+  border-radius: 9px; color: #fff; font-family: inherit;
+  transition: border-color .15s;
+}
+.hai-footer-nl-input:focus { outline: none; border-color: rgba(245,166,35,.6); }
+.hai-footer-nl-input::placeholder { color: #5b6072; }
+.hai-footer-nl-btn {
+  padding: 10px 18px; font-weight: 700; font-size: 13px; cursor: pointer;
+  background: linear-gradient(135deg, #f5a623, #d97706);
+  color: #0a0600; border: 0; border-radius: 9px; white-space: nowrap;
+  transition: transform .12s, box-shadow .15s;
+}
+.hai-footer-nl-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(245,166,35,.3); }
+.hai-footer-nl-btn:disabled { opacity: .6; cursor: not-allowed; }
+.hai-footer-nl-success {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px;
+  background: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.3);
+  border-radius: 9px; color: #86efac; font-size: 13.5px;
+}
+.hai-footer-nl-check {
+  width: 20px; height: 20px; border-radius: 50%;
+  background: #22c55e; color: #0a0e1a;
+  display: grid; place-items: center; font-weight: 800; font-size: 12px;
+}
+.hai-footer-nl-err { font-size: 12px; color: #fca5a5; margin-top: 6px; }
+.hai-footer-tw-link { color: inherit; text-decoration: none; }
+.hai-footer-tw-link:hover { text-decoration: underline; }
+@media (max-width: 720px) {
+  .hai-footer-nl { flex-direction: column; align-items: flex-start; }
+  .hai-footer-nl-form { width: 100%; }
+  .hai-footer-nl-input { flex: 1; width: auto; }
+}
+
 @media (max-width: 900px) {
   .hai-footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
 }

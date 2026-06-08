@@ -1,11 +1,21 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 const NETWORK_PRODUCTS = [
-  { name: 'ReplyAI',     desc: 'AI email replies in seconds',             link: 'https://replyai.com.ng',  icon: '⚡' },
-  { name: 'Portfolio',   desc: "Bitrus's work, projects & contact",       link: 'https://trueweb.tech',    icon: '🧑‍💻' },
-  { name: 'Star Ranker', desc: 'Entertainment analytics & PR',            link: '#',                       icon: '⭐' },
-  { name: 'SafeNet',     desc: 'Digital security & fraud protection',     link: '#',                       icon: '🛡️' },
+  {
+    name: 'ReplyAI',
+    desc: 'AI email replies in seconds',
+    link: 'https://replyai.com.ng',
+    favicon: 'https://replyai.com.ng/favicon.ico',
+    color: '#6366f1',
+  },
+  {
+    name: 'SupportAI',
+    desc: 'AI customer support for Nigerian businesses',
+    link: 'https://supportai.com.ng',
+    favicon: 'https://supportai.com.ng/favicon.ico',
+    color: '#0ea5e9',
+  },
 ];
 
 const SOCIAL_LINKS = [
@@ -14,9 +24,54 @@ const SOCIAL_LINKS = [
   { label: 'Instagram',   href: 'https://instagram.com', svg: 'M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z' },
 ];
 
+function FaviconImg({ url, name, fallbackColor }: { url: string; name: string; fallbackColor: string }) {
+  const [failed, setFailed] = useState(false);
+  if (failed) {
+    return (
+      <span style={{
+        width: 24, height: 24, borderRadius: 6,
+        background: fallbackColor,
+        display: 'grid', placeItems: 'center',
+        color: '#fff', fontWeight: 800, fontSize: 12, flexShrink: 0,
+        lineHeight: 1,
+      }}>{name[0]}</span>
+    );
+  }
+  return (
+    <img
+      src={url}
+      alt=""
+      width={24}
+      height={24}
+      style={{ borderRadius: 4, flexShrink: 0, objectFit: 'contain' }}
+      onError={() => setFailed(true)}
+    />
+  );
+}
+
 export function UnifiedFooter() {
   const [isNetworkOpen, setIsNetworkOpen] = useState(false);
+  const [nlEmail, setNlEmail] = useState('');
+  const [nlStatus, setNlStatus] = useState<'idle' | 'loading' | 'ok' | 'err'>('idle');
   const year = new Date().getFullYear();
+
+  const handleNlSubmit = async (e: { preventDefault(): void }) => {
+    e.preventDefault();
+    if (!/^\S+@\S+\.\S+$/.test(nlEmail)) { setNlStatus('err'); return; }
+    setNlStatus('loading');
+    try {
+      const base = (import.meta as any).env?.VITE_API_URL || '';
+      const res = await fetch(`${base}/api/newsletter/subscribe`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: nlEmail, source: 'harvestai-footer' }),
+      });
+      if (!res.ok) throw new Error();
+      setNlStatus('ok');
+    } catch {
+      setNlStatus('err');
+    }
+  };
 
   return (
     <footer className="hai-footer">
@@ -75,8 +130,8 @@ export function UnifiedFooter() {
           <div className="hai-footer-col">
             <h4 className="hai-footer-h">Support</h4>
             <ul className="hai-footer-links">
-              <li><a href="mailto:support@harvestai.ng">Help</a></li>
-              <li><a href="mailto:support@harvestai.ng">Contact</a></li>
+              <li><a href="mailto:support@trueweb.com.ng">Help</a></li>
+              <li><a href="mailto:hello@trueweb.com.ng">Contact</a></li>
               <li>
                 <button
                   type="button"
@@ -106,7 +161,7 @@ export function UnifiedFooter() {
                 rel="noopener noreferrer"
                 className="hai-footer-network-card"
               >
-                <span className="hai-footer-network-icon">{p.icon}</span>
+                <FaviconImg url={p.favicon} name={p.name} fallbackColor={p.color} />
                 <span className="hai-footer-network-meta">
                   <span className="hai-footer-network-name">{p.name}</span>
                   <span className="hai-footer-network-desc">{p.desc}</span>
@@ -116,9 +171,54 @@ export function UnifiedFooter() {
           </div>
         </div>
 
+        {/* Newsletter inline block */}
+        <div className="hai-footer-nl">
+          <div className="hai-footer-nl-copy">
+            <span className="hai-footer-nl-eyebrow">TrueWeb Network Newsletter</span>
+            <span className="hai-footer-nl-text">
+              Product updates, Naija-only deals, and new features across the network — one email per week.
+            </span>
+          </div>
+          {nlStatus === 'ok' ? (
+            <div className="hai-footer-nl-success">
+              <span className="hai-footer-nl-check">&#10003;</span>
+              You're subscribed! Check your inbox.
+            </div>
+          ) : (
+            <form className="hai-footer-nl-form" onSubmit={handleNlSubmit}>
+              <input
+                type="email"
+                required
+                placeholder="your@email.com"
+                value={nlEmail}
+                onChange={e => { setNlEmail(e.target.value); if (nlStatus === 'err') setNlStatus('idle'); }}
+                className="hai-footer-nl-input"
+                disabled={nlStatus === 'loading'}
+              />
+              <button
+                type="submit"
+                className="hai-footer-nl-btn"
+                disabled={nlStatus === 'loading'}
+              >
+                {nlStatus === 'loading' ? '…' : 'Subscribe'}
+              </button>
+            </form>
+          )}
+          {nlStatus === 'err' && <span className="hai-footer-nl-err">Enter a valid email.</span>}
+        </div>
+
         <div className="hai-footer-bottom">
           <span className="hai-footer-meta">
-            © {year} <strong>TrueWeb Solutions</strong>. Made with care in Nigeria 🇳🇬.
+            © {year}{' '}
+            <a
+              href="https://trueweb.com.ng"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hai-footer-tw-link"
+            >
+              <strong>TrueWeb Solutions</strong>
+            </a>
+            . Made with care in Nigeria 🇳🇬.
           </span>
           <span className="hai-footer-status">
             <span className="hai-footer-dot" /> All systems operational
