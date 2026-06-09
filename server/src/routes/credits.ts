@@ -136,9 +136,9 @@ router.get('/history', verifyFirebaseToken, async (req: any, res: any) => {
 
 // ── Pack catalog ────────────────────────────────────────────────────────────
 const PACKS: Record<string, { credits: number; ngnKobo: number; usdCents: number; name: string }> = {
-  starter: { credits: 100,  ngnKobo: 250000,  usdCents: 800,  name: 'Starter' },
-  pro:     { credits: 300,  ngnKobo: 600000,  usdCents: 2000, name: 'Pro' },
-  power:   { credits: 1000, ngnKobo: 1500000, usdCents: 5000, name: 'Power' },
+  starter: { credits: 100,  ngnKobo: 200000,  usdCents: 500,  name: 'Starter' },
+  pro:     { credits: 300,  ngnKobo: 500000,  usdCents: 1200, name: 'Pro' },
+  power:   { credits: 1000, ngnKobo: 1200000, usdCents: 2900, name: 'Power' },
 };
 
 // ── Squad checkout — Server-side API Initiation ─────────────────────────────────
@@ -210,6 +210,60 @@ router.post('/lemonsqueezy-checkout', verifyFirebaseToken, async (req: any, res:
     url.searchParams.set('checkout[custom][pack]',   packId);
     return res.json({ mode: 'overlay', checkoutUrl: url.toString() });
   } catch (err) { res.status(500).json({ message: 'Checkout failed' }); }
+});
+
+// ── Squad server-side checkout (preferred over Flutterwave/Paystack) ─────────
+router.post('/squad-checkout', verifyFirebaseToken, async (req: any, res: any, next: any) => {
+    try {
+        const { packId, currency = 'NGN' } = req.body;
+        const user = (req as any).user!;
+        const email: string = user.email || '';
+        const userId: string = user.uid || '';
+
+        const PACKS: Record<string, { credits: number; ngnKobo: number; name: string }> = {
+            starter: { credits: 100,  ngnKobo: 150000, name: 'Starter' },
+            pro:     { credits: 300,  ngnKobo: 350000, name: 'Pro' },
+            power:   { credits: 1000, ngnKobo: 800000, name: 'Power' },
+        };
+
+        const pack = PACKS[packId as string];
+        if (!pack)  return res.status(400).json({ message: 'Invalid pack' });
+        if (!email) return res.status(400).json({ message: 'No email on user' });
+
+        const secretKey = process.env.SQUAD_SECRET_KEY || process.env.GTSQUAD_SECRET_KEY;
+        if (!secretKey) return res.status(500).json({ message: 'Squad not configured' });
+
+        const txRef = `HAI-${userId.slice(0, 10)}-${Date.now()}`;
+        const amount = pack.ngnKobo;
+        const callbackUrl = `${process.env.APP_URL || 'https://harvestai.com.ng'}/dashboard?ref=${txRef}`;
+
+        const squadRes = await fetch('https://api-d.squadco.com/transaction/initiate', {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${secretKey}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                email,
+                amount,
+                initiate_type: 'inline',
+                currency: 'NGN',
+                callback_url: callbackUrl,
+                transaction_ref: txRef,
+                metadata: { pack: packId, userId, credits: pack.credits },
+            }),
+        });
+
+        const data: any = await squadRes.json();
+        if (data?.data?.checkout_url) {
+            return res.json({ checkoutUrl: data.data.checkout_url, reference: txRef });
+        }
+
+        console.error('[Squad HAI] Error:', data);
+        return res.status(502).json({ message: 'Failed to generate Squad payment link', detail: data });
+    } catch (err: any) {
+        next(err);
+    }
 });
 
 export default router;

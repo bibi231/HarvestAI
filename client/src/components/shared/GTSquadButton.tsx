@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { PackId, CREDIT_PACKS } from '../../types';
 import { useAuthStore } from '../../store/authStore';
 
@@ -7,32 +7,42 @@ interface GTSquadButtonProps {
   className?: string;
 }
 
-// Replace with actual GTSquad checkout links from app.gtsquad.co > Products
-const GTSQUAD_LINKS: Record<string, string> = {
-  starter: 'https://app.gtsquad.co/checkout/HARVESTAI_STARTER', 
-  pro:     'https://app.gtsquad.co/checkout/HARVESTAI_PRO',
-  power:   'https://app.gtsquad.co/checkout/HARVESTAI_POWER',
-};
-
 export function GTSquadButton({ packId, className }: GTSquadButtonProps) {
   const user = useAuthStore(s => s.user);
   const pack = CREDIT_PACKS.find(p => p.id === packId);
+  const [loading, setLoading] = useState(false);
 
-  const handleClick = () => {
-    if (!pack) return;
-    const base = GTSQUAD_LINKS[packId];
-    if (!base) return;
-    const url = user?.email ? `${base}?email=${encodeURIComponent(user.email)}` : base;
-    window.open(url, '_blank', 'noopener');
+  const handleClick = async () => {
+    if (!pack || !user?.email) return;
+    setLoading(true);
+    try {
+      const token = await user.getIdToken();
+      const res = await fetch('/api/credits/squad-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ packId, currency: 'NGN' }),
+      });
+      const data = await res.json();
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      } else {
+        alert('Payment error: ' + (data.message || 'Unknown error'));
+      }
+    } catch (err) {
+      alert('Payment error. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <button 
-      onClick={handleClick} 
+    <button
+      onClick={handleClick}
+      disabled={loading}
       className={`btn btn-primary w-full ${className || ''}`}
       style={{ height: 52, fontSize: 14, fontWeight: 700 }}
     >
-      💳 Pay with GTSquad
+      {loading ? 'Processing…' : '💳 Pay with Squad'}
     </button>
   );
 }
