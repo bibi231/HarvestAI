@@ -1,11 +1,12 @@
 import { useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { api } from '../lib/api';
-import { auth, 
-  signInWithGoogle as firebaseSignInWithGoogle, 
-  signInWithEmail, 
+import { auth,
+  signInWithGoogle as firebaseSignInWithGoogle,
+  signInWithGitHub as firebaseSignInWithGitHub,
+  signInWithEmail,
   signUpWithEmail,
-  signOut as firebaseSignOut 
+  signOut as firebaseSignOut
 } from '../lib/firebase';
 import { useAuthStore } from '../store/authStore';
 import { detectCurrency } from '../lib/currency';
@@ -59,6 +60,7 @@ export function useAuth() {
     signIn: signInWithEmail,
     signUp: signUpWithEmail,
     signInWithGoogle: firebaseSignInWithGoogle,
+    signInWithGitHub: firebaseSignInWithGitHub,
     signOut: firebaseSignOut
   };
 }
