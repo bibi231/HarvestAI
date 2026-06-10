@@ -4,4 +4,5 @@
   <url><loc>https://harvestai.com.ng/pricing</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
   <url><loc>https://harvestai.com.ng/privacy</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
   <url><loc>https://harvestai.com.ng/terms</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <url><loc>https://harvestai.com.ng/blog</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
 </urlset>
