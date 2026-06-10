@@ -1,0 +1,39 @@
+# HarvestAI
+
+> AI-powered web scraping, lead generation, and B2B data extraction tool for Nigerian and African businesses.
+
+HarvestAI lets businesses extract structured data from any website — leads, contact information, product prices, competitor data, SERP rankings, and more. No coding required.
+
+## Core features
+
+- **Lead generation** (`leads` mode): Extract business leads from directories, LinkedIn, and business listing sites
+- **Data extraction** (`extract` mode): Pull structured data from any URL into clean JSON/CSV
+- **Bulk processing** (`bulk_csv` mode): Upload a CSV of URLs and process them all at once
+- **SERP scraping** (`serp` mode): Track keyword rankings on Google search results
+- **Sitemap crawling** (`sitemap` mode): Map and extract all pages from any website
+- **Email finder** (`email_finder` mode): Find business email addresses from company names or domains
+- **Price monitoring** (`price_check` mode): Track competitor product prices over time
+- **Data enrichment** (`enrich` mode): Append missing data to your existing contact lists
+
+## Use cases
+
+- Building prospect lists for cold outreach
+- Monitoring competitor pricing on Nigerian e-commerce sites
+- Finding supplier and distributor contacts
+- Tracking your SEO keyword rankings
+- Extracting data from Nigerian business directories (CAC, Ngcareers, VConnect)
+
+## Pricing
+
+Free tier available. Paid plans for higher volume extraction.
+
+## Built for
+
+Nigerian and African B2B sales teams, digital marketers, data analysts, and agencies that need structured web data without hiring developers.
+
+## Links
+
+- Homepage: https://harvestai.com.ng
+- Blog: https://harvestai.com.ng/blog
+- Pricing: https://harvestai.com.ng/pricing
+- Part of the TrueWeb Solutions portfolio: https://trueweb.com.ng
