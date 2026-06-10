@@ -48,6 +48,8 @@ app.use('/api/newsletter', newsletterRouter);
 app.use('/api/settings', (await import('./routes/settings.js')).default);
 app.use('/api/templates', (await import('./routes/templates.js')).default);
 app.use('/api/scheduled', (await import('./routes/scheduled.js')).default);
+app.use('/api/admin', (await import('./routes/admin.js')).default);
+app.use('/api/blog', (await import('./routes/blog.js')).default);
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok', timestamp: Date.now() }));
 app.get('/api/db-debug', async (_req, res) => {

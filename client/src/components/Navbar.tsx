@@ -3,12 +3,15 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { signOut } from '../lib/firebase';
 
+const PLATFORM_ADMINS = ['peterjohn2343@gmail.com', 'bitrusgadzama02@gmail.com'];
+
 export function Navbar() {
   const { user, credits } = useAuthStore();
   const { pathname } = useLocation();
   const free = credits?.freeRemaining ?? 0;
   const paid = credits?.paidCredits ?? 0;
   const has = free > 0 || paid > 0;
+  const isAdmin = !!user?.email && PLATFORM_ADMINS.includes(user.email);
 
   return (
     <nav className="nav">
@@ -44,6 +47,17 @@ export function Navbar() {
           )}
           {user && (
             <>
+              {isAdmin && (
+                <Link to="/admin" className={`nav-link${pathname === '/admin' ? ' active' : ''}`} style={{
+                  display: 'flex', alignItems: 'center', gap: 4, color: '#f5a623',
+                  border: '1px solid rgba(245,166,35,0.3)', padding: '3px 10px', borderRadius: 6, fontSize: 13, fontWeight: 600,
+                }}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  </svg>
+                  Admin
+                </Link>
+              )}
               <Link to="/app"       className={`nav-link${pathname === '/app'       ? ' active' : ''}`}>Harvest</Link>
               <Link to="/scheduled" className={`nav-link${pathname === '/scheduled' ? ' active' : ''}`}>Schedule</Link>
               <Link to="/history"   className={`nav-link${pathname === '/history'   ? ' active' : ''}`}>History</Link>

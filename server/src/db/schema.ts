@@ -12,6 +12,7 @@ export const users = pgTable('users', {
   paidCredits: integer('paid_credits').default(0),
   totalCredits: integer('total_credits').default(0), // Total ever purchased
   totalJobs: integer('total_jobs').default(0),
+  platformRole: varchar('platform_role', { length: 20 }), // 'super_admin' | 'admin' | 'editor' | null
   notificationsEmail: boolean('notifications_email').default(true),
   notificationsJobComplete: boolean('notifications_job_complete').default(true),
   defaultMode: varchar('default_mode', { length: 20 }).default('leads'),
@@ -102,4 +103,18 @@ export const priceHistory = pgTable('price_history', {
   currency: varchar('currency', { length: 10 }),
   availability: varchar('availability', { length: 50 }),
   scrapedAt: timestamp('scraped_at').defaultNow(),
+});
+
+export const blogPosts = pgTable('blog_posts', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  slug: varchar('slug', { length: 255 }).notNull().unique(),
+  title: varchar('title', { length: 500 }).notNull(),
+  excerpt: text('excerpt').notNull(),
+  content: text('content').notNull(),
+  author: varchar('author', { length: 255 }).notNull().default('HarvestAI Team'),
+  tags: jsonb('tags').$type<string[]>().default([]),
+  readingTime: integer('reading_time').default(5),
+  published: boolean('published').default(false),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
 });

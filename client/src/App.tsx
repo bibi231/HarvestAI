@@ -17,6 +17,7 @@ const Refund          = lazy(() => import('./pages/Refund'));
 const Cookies         = lazy(() => import('./pages/Cookies'));
 const Blog            = lazy(() => import('./pages/Blog'));
 const BlogPost        = lazy(() => import('./pages/BlogPost'));
+const AdminPage       = lazy(() => import('./pages/AdminPage'));
 const AuthModal       = lazy(() => import('./components/AuthModal'));
 const NewsletterPopup = lazy(() => import('./components/marketing/NewsletterPopup'));
 const UnifiedFooter   = lazy(() => import('./components/layout/UnifiedFooter').then(m => ({ default: m.UnifiedFooter })));
@@ -87,6 +88,7 @@ export default function App() {
           <Route path="/pricing"   element={<Pricing />} />
           <Route path="/blog"      element={<Blog />} />
           <Route path="/blog/:slug" element={<BlogPost />} />
+          <Route path="/admin"     element={<AdminPage />} />
           <Route path="/privacy"   element={<Privacy />} />
           <Route path="/terms"     element={<Terms />} />
           <Route path="/refund"    element={<Refund />} />
