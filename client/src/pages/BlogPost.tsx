@@ -29,7 +29,7 @@ export default function BlogPost() {
             ))}
           </div>
 
-          <h1 className="legal-title" style={{ fontSize: 30, lineHeight: 1.2 }}>{post.title}</h1>
+          <h1 className="legal-title" style={{ fontSize: 'clamp(22px, 5vw, 30px)', lineHeight: 1.2 }}>{post.title}</h1>
 
           <div style={{ display: 'flex', gap: 16, fontSize: 13, color: 'rgba(255,255,255,0.4)', margin: '12px 0 40px' }}>
             <span>{post.author}</span><span>·</span>
@@ -46,10 +46,10 @@ export default function BlogPost() {
             borderRadius: 12, border: '1px solid rgba(245,166,35,0.2)', textAlign: 'center',
           }}>
             <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 20, marginBottom: 8 }}>
-              AI-powered crop advisory for Nigerian farmers
+              Extract leads and data from any website in seconds
             </p>
             <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 15, marginBottom: 24 }}>
-              HarvestAI gives you agronomist-quality advice for your specific crops, soil, and location.
+              HarvestAI scrapes, structures, and exports B2B data for Nigerian businesses — leads, prices, contacts, and more.
             </p>
             <Link to="/" style={{
               display: 'inline-block', background: '#f5a623', color: '#000',
@@ -79,10 +79,17 @@ export default function BlogPost() {
         .hai-prose code { background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px; font-size: 14px; }
         .hai-prose pre { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 20px; overflow-x: auto; margin-bottom: 24px; }
         .hai-prose pre code { background: none; padding: 0; }
-        .hai-prose table { width: 100%; border-collapse: collapse; margin-bottom: 24px; font-size: 15px; }
+        .hai-prose table { display: block; overflow-x: auto; width: 100%; border-collapse: collapse; margin-bottom: 24px; font-size: 15px; }
         .hai-prose th { text-align: left; padding: 10px 14px; background: rgba(255,255,255,0.06); color: #fff; font-weight: 600; }
         .hai-prose td { padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.06); }
         .hai-prose blockquote { border-left: 3px solid #f5a623; padding-left: 16px; margin: 0 0 18px; color: rgba(255,255,255,0.5); font-style: italic; }
+        @media (max-width: 640px) {
+          .hai-prose { font-size: 15px; }
+          .hai-prose h2 { font-size: 19px; }
+          .hai-prose h3 { font-size: 16px; }
+          .hai-prose table { font-size: 13px; }
+          .hai-prose th, .hai-prose td { padding: 8px 10px; }
+        }
       `}</style>
     </div>
   );
