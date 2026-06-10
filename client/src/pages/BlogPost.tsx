@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link, useParams, Navigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -8,6 +8,35 @@ import { getPostBySlug } from '../lib/blog';
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
   const post = slug ? getPostBySlug(slug) : undefined;
+
+  useEffect(() => {
+    if (!post) return;
+    const ld = {
+      '@context': 'https://schema.org',
+      '@type': 'Article',
+      headline: post.title,
+      description: post.excerpt,
+      author: { '@type': 'Person', name: post.author },
+      publisher: {
+        '@type': 'Organization',
+        name: 'HarvestAI',
+        logo: { '@type': 'ImageObject', url: 'https://harvestai.com.ng/logo.png' },
+      },
+      datePublished: post.date,
+      dateModified: post.date,
+      mainEntityOfPage: { '@type': 'WebPage', '@id': `https://harvestai.com.ng/blog/${slug}` },
+      image: 'https://harvestai.com.ng/og.png',
+      keywords: post.tags.join(', '),
+    };
+    const old = document.getElementById('blog-jsonld');
+    if (old) old.remove();
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.id = 'blog-jsonld';
+    script.text = JSON.stringify(ld);
+    document.head.appendChild(script);
+    return () => { script.remove(); };
+  }, [post, slug]);
 
   if (!post) return <Navigate to="/blog" replace />;
 
