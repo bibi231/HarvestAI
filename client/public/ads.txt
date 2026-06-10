@@ -1,1 +1,5 @@
 google.com, pub-7798519284162823, DIRECT, f08c47fec0942fa0
+# Adsterra: sign up adsterra.com → Publisher → replace ADSTERRA_PUB_ID then uncomment
+# adsterra.com, ADSTERRA_PUB_ID, DIRECT
+# Monetag: sign up monetag.com → Publisher → replace MONETAG_PUB_ID then uncomment
+# monetag.com, MONETAG_PUB_ID, DIRECT
