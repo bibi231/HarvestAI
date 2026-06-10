@@ -115,6 +115,16 @@ export const blogComments = pgTable('blog_comments', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
+export const emailLog = pgTable('email_log', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: varchar('user_id', { length: 128 }),
+  site: varchar('site', { length: 50 }).notNull(),
+  flow: varchar('flow', { length: 50 }).notNull(),
+  sentAt: timestamp('sent_at').defaultNow().notNull(),
+  openedAt: timestamp('opened_at'),
+  clickedAt: timestamp('clicked_at'),
+});
+
 export const blogPosts = pgTable('blog_posts', {
   id: uuid('id').primaryKey().defaultRandom(),
   slug: varchar('slug', { length: 255 }).notNull().unique(),

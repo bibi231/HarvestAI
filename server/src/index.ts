@@ -72,6 +72,7 @@ const PORT = process.env.PORT ?? 4000;
 app.listen(PORT, () => {
   console.log(`HarvestAI server running on port ${PORT}`);
   import('./services/schedulerService.js').then(m => m.startScheduler());
+  import('./jobs/drip.js').then(m => m.startDripJobs()).catch(console.error);
 
   // Self-ping every 13 minutes to prevent Render free-tier spin-down
   const SELF_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;

@@ -1,8 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://harvestai.com.ng/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
-  <url><loc>https://harvestai.com.ng/pricing</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://harvestai.com.ng/privacy</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
-  <url><loc>https://harvestai.com.ng/terms</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
-  <url><loc>https://harvestai.com.ng/blog</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://harvestai.com.ng/</loc><lastmod>2026-06-10</lastmod><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://harvestai.com.ng/pricing</loc><lastmod>2026-06-10</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://harvestai.com.ng/blog</loc><lastmod>2026-06-10</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://harvestai.com.ng/privacy</loc><lastmod>2026-06-10</lastmod><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <url><loc>https://harvestai.com.ng/terms</loc><lastmod>2026-06-10</lastmod><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <url><loc>https://harvestai.com.ng/refund</loc><lastmod>2026-06-10</lastmod><changefreq>yearly</changefreq><priority>0.2</priority></url>
+  <url><loc>https://harvestai.com.ng/cookies</loc><lastmod>2026-06-10</lastmod><changefreq>yearly</changefreq><priority>0.2</priority></url>
+  <url><loc>https://harvestai.com.ng/blog/avoid-bad-leads-data-quality</loc><lastmod>2026-06-10</lastmod><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://harvestai.com.ng/blog/b2b-lead-generation-nigeria</loc><lastmod>2026-06-10</lastmod><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://harvestai.com.ng/blog/bulk-data-extraction-guide</loc><lastmod>2026-06-10</lastmod><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://harvestai.com.ng/blog/email-finder-decision-makers-nigeria</loc><lastmod>2026-06-10</lastmod><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://harvestai.com.ng/blog/enriching-business-data-nigeria</loc><lastmod>2026-06-10</lastmod><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://harvestai.com.ng/blog/find-supplier-contacts-nigeria</loc><lastmod>2026-06-10</lastmod><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://harvestai.com.ng/blog/future-b2b-data-tools-nigeria</loc><lastmod>2026-06-10</lastmod><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://harvestai.com.ng/blog/nigerian-sme-data-strategy</loc><lastmod>2026-06-10</lastmod><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://harvestai.com.ng/blog/price-monitoring-fmcg-nigeria</loc><lastmod>2026-06-10</lastmod><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://harvestai.com.ng/blog/qualifying-scraped-leads</loc><lastmod>2026-06-10</lastmod><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://harvestai.com.ng/blog/raw-data-to-revenue</loc><lastmod>2026-06-10</lastmod><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://harvestai.com.ng/blog/scheduled-scraping-market-intelligence</loc><lastmod>2026-06-10</lastmod><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://harvestai.com.ng/blog/serp-scraping-for-businesses</loc><lastmod>2026-06-10</lastmod><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://harvestai.com.ng/blog/vconnect-google-maps-nigerian-business-data</loc><lastmod>2026-06-10</lastmod><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://harvestai.com.ng/blog/web-scraping-ethics-nigeria</loc><lastmod>2026-06-10</lastmod><changefreq>monthly</changefreq><priority>0.5</priority></url>
 </urlset>

@@ -4,6 +4,7 @@ import { users } from '../db/schema.js';
 import { eq } from 'drizzle-orm';
 import crypto from 'crypto';
 import { addPaidCredits } from '../services/creditsService.js';
+import { sendPaymentSuccessEmail } from '../lib/email/send.js';
 
 const router = Router();
 
@@ -55,6 +56,12 @@ router.post('/gtsquad', async (req: Request, res: Response) => {
 
             await addPaidCredits(user.id, credits, 'squad', reference, packId, data.amount ?? 0, 'NGN');
             console.log(`[Squad Webhook] Added ${credits} credits to ${email}`);
+            sendPaymentSuccessEmail(user.id, email, {
+              credits,
+              pack: packId,
+              amountNgn: (data.amount ?? 0) * 100,
+              txRef: reference,
+            }).catch(console.error);
         }
 
         return res.status(200).send('OK');
