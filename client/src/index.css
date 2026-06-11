@@ -1444,3 +1444,27 @@ html, body { overflow-x: hidden; }
     padding: 4px 44px 4px 4px;
   }
 }
+
+/* ─── Polish layer (2026-06) ───────────────────────────────── */
+::selection { background: rgba(245, 166, 35, 0.30); color: var(--text-1); }
+
+* { scrollbar-width: thin; scrollbar-color: rgba(245,166,35,0.35) transparent; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(245,166,35,0.45), rgba(245,166,35,0.15));
+  border-radius: 8px; border: 2px solid transparent; background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(245,166,35,0.55); }
+
+:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; border-radius: 4px; }
+
+.btn { transition: transform 0.15s cubic-bezier(0.2,0.8,0.4,1), box-shadow 0.2s ease, background 0.2s ease, opacity 0.2s ease; }
+.btn-primary:hover { transform: translateY(-1.5px); box-shadow: 0 8px 28px rgba(245,166,35,0.35); }
+.btn:active { transform: scale(0.985); }
+
+a { text-underline-offset: 3px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

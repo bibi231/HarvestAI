@@ -6,7 +6,7 @@ import { count, sum, gte, eq, desc } from 'drizzle-orm';
 
 export type PlatformRole = 'super_admin' | 'admin' | 'editor';
 
-const PLATFORM_ADMINS = ['peterjohn2343@gmail.com', 'bitrusgadzama02@gmail.com', 'bitrus@trueweb.ng'];
+const PLATFORM_ADMINS = ['peterjohn2343@gmail.com', 'bitrus@trueweb.ng'];
 const router = Router();
 
 async function resolveRole(email: string, uid: string): Promise<PlatformRole | null> {

@@ -4,8 +4,9 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useAuthStore } from '../store/authStore';
 import { api } from '../lib/api';
+import { getAllPosts } from '../lib/blog';
 
-const PLATFORM_ADMINS = ['peterjohn2343@gmail.com', 'bitrusgadzama02@gmail.com', 'bitrus@trueweb.ng'];
+const PLATFORM_ADMINS = ['peterjohn2343@gmail.com', 'bitrus@trueweb.ng'];
 
 type Tab = 'overview' | 'blog' | 'users';
 type PlatformRole = 'super_admin' | 'admin' | 'editor';
@@ -238,8 +239,29 @@ export default function AdminPage() {
               <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 18, margin: 0 }}>Blog Posts</h2>
               <button onClick={() => setEditPost({ ...BLANK })} style={{ background: accent, border: 'none', borderRadius: 8, padding: '8px 18px', color: '#000', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>+ New Post</button>
             </div>
+            {/* Built-in markdown posts (bundled with the site, read-only here) */}
+            <div style={{ marginBottom: 24 }}>
+              <h3 style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
+                Published articles (built-in) · {getAllPosts().length}
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {getAllPosts().map(p => (
+                  <div key={p.slug} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 16px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 10 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 600, fontSize: 13.5, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.title}</div>
+                      <div style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>/blog/{p.slug} · {p.date} · {p.readingTime} min</div>
+                    </div>
+                    <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 4, background: 'rgba(52,211,153,0.1)', color: '#34d399' }}>Live</span>
+                    <a href={`/blog/${p.slug}`} target="_blank" rel="noreferrer" style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 6, padding: '5px 12px', color: '#fff', fontSize: 12, textDecoration: 'none' }}>View</a>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <h3 style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
+              Database posts · {posts.length}
+            </h3>
             {posts.length === 0 ? (
-              <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>No posts in DB yet.</p>
+              <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>No posts in DB yet. Create one above — it will appear on the public blog once published.</p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {posts.map(p => (

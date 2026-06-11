@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 
 import authRouter from './routes/auth.js';
 import harvestRouter from './routes/harvest.js';
@@ -11,6 +12,7 @@ import webhooksRouter from './routes/webhooks.js';
 import newsletterRouter from './routes/newsletter.js';
 
 const app = express();
+app.set('trust proxy', 1);
 
 app.use('/api/webhooks/paystack', express.raw({ type: 'application/json' }));
 app.use('/api/webhooks/stripe', express.raw({ type: 'application/json' }));
@@ -38,6 +40,23 @@ app.use(cors({
   },
   credentials: true,
 }));
+
+// ─── Rate limiting ───────────────────────────────────────────
+app.use(rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 600,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+}));
+const strictLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 30,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: { error: 'RATE_LIMITED', message: 'Too many attempts. Try again later.' },
+});
+app.use('/api/auth', strictLimiter);
+app.use('/api/credits', strictLimiter);
 
 app.use('/api/auth', authRouter);
 app.use('/api/harvest', harvestRouter);
