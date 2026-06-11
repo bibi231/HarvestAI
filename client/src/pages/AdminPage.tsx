@@ -5,7 +5,7 @@ import remarkGfm from 'remark-gfm';
 import { useAuthStore } from '../store/authStore';
 import { api } from '../lib/api';
 
-const PLATFORM_ADMINS = ['peterjohn2343@gmail.com', 'bitrusgadzama02@gmail.com'];
+const PLATFORM_ADMINS = ['peterjohn2343@gmail.com', 'bitrusgadzama02@gmail.com', 'bitrus@trueweb.ng'];
 
 type Tab = 'overview' | 'blog' | 'users';
 type PlatformRole = 'super_admin' | 'admin' | 'editor';

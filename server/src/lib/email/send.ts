@@ -5,8 +5,8 @@ import { emailLog } from '../../db/schema.js';
 import { and, eq, gte } from 'drizzle-orm';
 
 const SITE = 'harvestai';
-const FROM = 'HarvestAI <hello@harvestai.com.ng>';
-const REPLY_TO = 'support@harvestai.com.ng';
+const FROM = process.env.EMAIL_FROM || 'HarvestAI <hello@harvestai.com.ng>';
+const REPLY_TO = process.env.EMAIL_REPLY_TO || 'support@harvestai.com.ng';
 
 type Flow =
   | 'welcome' | 'verify_email' | 'password_reset'

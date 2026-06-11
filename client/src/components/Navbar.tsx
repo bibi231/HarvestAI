@@ -3,15 +3,19 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { signOut } from '../lib/firebase';
 
-const PLATFORM_ADMINS = ['peterjohn2343@gmail.com', 'bitrusgadzama02@gmail.com'];
+const PLATFORM_ADMINS = ['peterjohn2343@gmail.com', 'bitrusgadzama02@gmail.com', 'bitrus@trueweb.ng'];
 
 export function Navbar() {
   const { user, credits } = useAuthStore();
   const { pathname } = useLocation();
+  const [menuOpen, setMenuOpen] = React.useState(false);
   const free = credits?.freeRemaining ?? 0;
   const paid = credits?.paidCredits ?? 0;
   const has = free > 0 || paid > 0;
   const isAdmin = !!user?.email && PLATFORM_ADMINS.includes(user.email);
+
+  // Close menu on navigation
+  React.useEffect(() => { setMenuOpen(false); }, [pathname]);
 
   return (
     <nav className="nav">
@@ -25,7 +29,19 @@ export function Navbar() {
           HarvestAI
         </Link>
 
-        <div className="nav-right">
+        <button
+          className="nav-hamburger"
+          onClick={() => setMenuOpen(o => !o)}
+          aria-label="Toggle menu"
+          aria-expanded={menuOpen}
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            {menuOpen ? <path d="M18 6L6 18M6 6l12 12" /> : <path d="M3 12h18M3 6h18M3 18h18" />}
+          </svg>
+        </button>
+        {menuOpen && <div className="nav-overlay" onClick={() => setMenuOpen(false)} />}
+
+        <div className={`nav-right${menuOpen ? ' menu-open' : ''}`}>
           {!user && (
             <>
               <Link to="/pricing" className="nav-link">Pricing</Link>

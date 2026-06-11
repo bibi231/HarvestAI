@@ -18,6 +18,7 @@ const Cookies         = lazy(() => import('./pages/Cookies'));
 const Blog            = lazy(() => import('./pages/Blog'));
 const BlogPost        = lazy(() => import('./pages/BlogPost'));
 const AdminPage       = lazy(() => import('./pages/AdminPage'));
+const NotFound        = lazy(() => import('./pages/NotFound'));
 const AuthModal       = lazy(() => import('./components/AuthModal'));
 const NewsletterPopup = lazy(() => import('./components/marketing/NewsletterPopup'));
 const UnifiedFooter   = lazy(() => import('./components/layout/UnifiedFooter').then(m => ({ default: m.UnifiedFooter })));
@@ -93,7 +94,7 @@ export default function App() {
           <Route path="/terms"     element={<Terms />} />
           <Route path="/refund"    element={<Refund />} />
           <Route path="/cookies"   element={<Cookies />} />
-          <Route path="*"          element={<Navigate to="/" replace />} />
+          <Route path="*"          element={<NotFound />} />
         </Routes>
         <NewsletterPopup />
         <UnifiedFooter />
