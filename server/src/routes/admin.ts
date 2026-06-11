@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { verifyFirebaseToken } from '../middleware/verifyFirebaseToken.js';
 import { db } from '../db/index.js';
-import { users, jobs, payments, blogPosts } from '../db/schema.js';
+import { users, harvestJobs, payments, blogPosts } from '../db/schema.js';
 import { count, sum, gte, eq, desc } from 'drizzle-orm';
 
 export type PlatformRole = 'super_admin' | 'admin' | 'editor';
@@ -36,10 +36,10 @@ router.get('/stats', requireAuth('admin'), async (_req, res, next) => {
   try {
     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     const [totalUsersRow] = await db.select({ c: count() }).from(users);
-    const [totalJobsRow] = await db.select({ c: count() }).from(jobs);
+    const [totalJobsRow] = await db.select({ c: count() }).from(harvestJobs);
     const [newUsersRow] = await db.select({ c: count() }).from(users).where(gte(users.createdAt, weekAgo));
     const [revenueRow] = await db.select({ total: sum(payments.credits) }).from(payments).where(eq(payments.status, 'success'));
-    const [jobsWeekRow] = await db.select({ c: count() }).from(jobs).where(gte(jobs.createdAt, weekAgo));
+    const [jobsWeekRow] = await db.select({ c: count() }).from(harvestJobs).where(gte(harvestJobs.createdAt, weekAgo));
     const recentUsers = await db.select({
       id: users.id, email: users.email, displayName: users.displayName,
       paidCredits: users.paidCredits, freeCreditsUsed: users.freeCreditsUsed,
