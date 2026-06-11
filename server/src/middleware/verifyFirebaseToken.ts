@@ -19,8 +19,17 @@ if (!admin.apps.length) {
   }
   // 2. Full JSON string (FIREBASE_SERVICE_ACCOUNT_JSON is the canonical name)
   else if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON || process.env.FIREBASE_SERVICE_ACCOUNT) {
-    const json = process.env.FIREBASE_SERVICE_ACCOUNT_JSON || process.env.FIREBASE_SERVICE_ACCOUNT!;
-    credential = admin.credential.cert(JSON.parse(json));
+    let json = (process.env.FIREBASE_SERVICE_ACCOUNT_JSON || process.env.FIREBASE_SERVICE_ACCOUNT!).trim();
+    // Some .env files might double-wrap in quotes or have literal \n
+    if ((json.startsWith("'") && json.endsWith("'")) || (json.startsWith('"') && json.endsWith('"'))) {
+      json = json.slice(1, -1);
+    }
+    try {
+      credential = admin.credential.cert(JSON.parse(json));
+    } catch (err: any) {
+      console.error('[Firebase] Malformed JSON in env var:', err.message);
+      // Fallback to local file if JSON parsing fails
+    }
   }
   // 3. Last-resort local file (NEVER commit this — gitignored).
   else {
