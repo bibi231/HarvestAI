@@ -111,6 +111,7 @@ export function UnifiedFooter() {
               <li><Link to="/app">Harvest Center</Link></li>
               <li><Link to="/history">Job History</Link></li>
               <li><Link to="/pricing">Pricing</Link></li>
+              <li><Link to="/blog">Blog</Link></li>
               <li><Link to="/settings">Settings</Link></li>
             </ul>
           </div>
