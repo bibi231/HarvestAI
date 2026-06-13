@@ -93,11 +93,15 @@ app.listen(PORT, () => {
   import('./services/schedulerService.js').then(m => m.startScheduler());
   import('./jobs/drip.js').then(m => m.startDripJobs()).catch(console.error);
 
-  // Self-ping every 13 minutes to prevent Render free-tier spin-down
-  const SELF_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
-  setInterval(() => {
-    fetch(`${SELF_URL}/api/health`).catch(() => {});
-  }, 13 * 60 * 1000);
+  // Self-ping every 13 minutes to prevent Render free-tier spin-down.
+  // ONLY on Render — on Cloud Run (or any scale-to-zero host) keeping the
+  // instance perpetually warm defeats scale-to-zero and wastes resources.
+  if (process.env.RENDER_EXTERNAL_URL) {
+    const SELF_URL = process.env.RENDER_EXTERNAL_URL;
+    setInterval(() => {
+      fetch(`${SELF_URL}/api/health`).catch(() => {});
+    }, 13 * 60 * 1000);
+  }
 });
 
 export default app;

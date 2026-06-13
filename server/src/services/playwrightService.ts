@@ -1,4 +1,5 @@
 import { chromium, type Browser, type BrowserContext } from 'playwright';
+import { scrapeAllowed, recordScrape } from './scrapeGuard.js';
 
 let browser: Browser | null = null;
 
@@ -40,6 +41,12 @@ export async function scrapeWithPlaywright(
 ): Promise<PlaywrightScrapeResult> {
   let context: BrowserContext | null = null;
 
+  // Bandwidth guardrail: refuse once the daily scrape cap is hit, so a runaway
+  // job can't blow the host's bandwidth quota.
+  if (!scrapeAllowed()) {
+    return { url, html: '', text: '', title: '', success: false, error: 'DAILY_SCRAPE_CAP_REACHED' };
+  }
+
   try {
     const b = await getBrowser();
     context = await b.newContext({
@@ -50,10 +57,21 @@ export async function scrapeWithPlaywright(
 
     const page = await context.newPage();
 
-    // Block unnecessary resources to speed up loading
-    await page.route('**/*.{png,jpg,jpeg,gif,svg,woff,woff2,ttf,otf}', route => route.abort());
+    // Bandwidth saver: abort heavy resources we don't need for HTML/text
+    // scraping (images, media, fonts, stylesheets). Matching by resourceType
+    // catches everything regardless of extension/URL (webp, avif, CDN URLs with
+    // no extension, video, etc.) — typically 70-90% of a page's transfer.
+    // Scripts are kept so JS-rendered pages still hydrate.
+    const BLOCKED_RESOURCE_TYPES = new Set(['image', 'media', 'font', 'stylesheet']);
+    await page.route('**/*', (route) => {
+      if (BLOCKED_RESOURCE_TYPES.has(route.request().resourceType())) {
+        return route.abort();
+      }
+      return route.continue();
+    });
 
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: timeoutMs });
+    recordScrape();
 
     if (waitForSelector) {
       await page.waitForSelector(waitForSelector, { timeout: 10000 }).catch(() => {});

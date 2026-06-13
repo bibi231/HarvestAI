@@ -33,3 +33,4 @@ drizzle
 
 # Firebase Admin
 server/src/config/firebase-admin.json
+server/firebase-service-account.json
