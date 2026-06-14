@@ -1,7 +1,40 @@
 import { chromium, type Browser, type BrowserContext } from 'playwright';
 import { scrapeAllowed, recordScrape } from './scrapeGuard.js';
+import dns from 'dns/promises';
+import net from 'net';
 
 let browser: Browser | null = null;
+
+// SSRF guard: block requests to internal / private / cloud-metadata addresses.
+function isPrivateIp(ip: string): boolean {
+  if (net.isIP(ip) === 4) {
+    const p = ip.split('.').map(Number);
+    return p[0] === 0 || p[0] === 10 || p[0] === 127
+      || (p[0] === 172 && p[1] >= 16 && p[1] <= 31)
+      || (p[0] === 192 && p[1] === 168)
+      || (p[0] === 169 && p[1] === 254); // link-local incl. cloud metadata
+  }
+  const l = ip.toLowerCase();
+  return l === '::1' || l === '::' || l.startsWith('fc') || l.startsWith('fd') || l.startsWith('fe80') || l.startsWith('::ffff:127.') || l.startsWith('::ffff:10.') || l.startsWith('::ffff:169.254.');
+}
+
+/** Throws if the URL is not a public http(s) address. Mitigates SSRF + DNS rebinding. */
+export async function assertPublicUrl(raw: string): Promise<void> {
+  let u: URL;
+  try { u = new URL(raw); } catch { throw new Error('Invalid URL'); }
+  if (u.protocol !== 'http:' && u.protocol !== 'https:') throw new Error('Only http(s) URLs are allowed');
+  const host = u.hostname.toLowerCase().replace(/^\[|\]$/g, '');
+  if (host === 'localhost' || host.endsWith('.local') || host.endsWith('.internal') || host === 'metadata.google.internal') {
+    throw new Error('Blocked host');
+  }
+  let addrs: string[];
+  if (net.isIP(host)) addrs = [host];
+  else {
+    try { addrs = (await dns.lookup(host, { all: true })).map((a) => a.address); }
+    catch { throw new Error('DNS resolution failed'); }
+  }
+  if (addrs.length === 0 || addrs.some(isPrivateIp)) throw new Error('Blocked private/internal address');
+}
 
 async function getBrowser(): Promise<Browser> {
   if (!browser || !browser.isConnected()) {
@@ -45,6 +78,13 @@ export async function scrapeWithPlaywright(
   // job can't blow the host's bandwidth quota.
   if (!scrapeAllowed()) {
     return { url, html: '', text: '', title: '', success: false, error: 'DAILY_SCRAPE_CAP_REACHED' };
+  }
+
+  // SSRF guard: never let a user-supplied URL reach internal/metadata addresses.
+  try {
+    await assertPublicUrl(url);
+  } catch (e) {
+    return { url, html: '', text: '', title: '', success: false, error: 'BLOCKED_URL: ' + (e instanceof Error ? e.message : 'invalid') };
   }
 
   try {
