@@ -11,7 +11,7 @@ export default function Cookies() {
           <div className="legal-header">
             <span className="legal-eyebrow">Legal</span>
             <h1 className="legal-title">Cookie Policy</h1>
-            <p className="legal-meta">Last updated: May 2025 · Effective immediately</p>
+            <p className="legal-meta">Last updated: June 2026 · Effective immediately</p>
           </div>
 
           <div className="legal-body">
