@@ -2,6 +2,7 @@ import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
 import { useAuth } from './hooks/useAuth';
+import { AskAI } from './components/AskAI';
 
 
 // Code-split heavy routes
@@ -98,6 +99,7 @@ export default function App() {
         </Routes>
         <NewsletterPopup />
         <UnifiedFooter />
+        <AskAI />
       </Suspense>
     </Router>
   );
